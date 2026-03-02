@@ -66,24 +66,23 @@ export default function EvaluatePage() {
   const [submitting, setSubmitting] = useState(false)
   const [evaluatedMap, setEvaluatedMap] = useState<Record<string, boolean>>({})
 
-  useEffect(() => {
-    mounted.current = true
-    initializeStore()
-    const id = sessionStorage.getItem("anonymous_id")
-    if (!id) {
-      router.replace("/")
-      return
-    }
-    if (mounted.current) {
-      setAnonymousId(id)
-      fetchCompanies().then((c) => { if (mounted.current) setCompanies(c) }).catch(() => {})
-      setReady(true)
-    }
-    return () => {
-      mounted.current = false
-    }
-  }, [router])
+useEffect(() => {
+  initializeStore()
 
+  const id = sessionStorage.getItem("anonymous_id")
+
+  if (!id) {
+    router.replace("/")
+    return
+  }
+
+  setAnonymousId(id)
+  setReady(true)
+
+  fetchCompanies()
+    .then(setCompanies)
+    .catch(console.error)
+}, [router])
   const selectCompany = useCallback(async (company: Company) => {
     setSelectedCompany(company)
     try {
