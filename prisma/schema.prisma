@@ -1,71 +1,85 @@
 generator client {
   provider = "prisma-client-js"
+
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
-model Company {
-  id          String       @id @default(uuid())
-  name        String
-  logo        String?
-  supervisors Supervisor[]
-  evaluations Evaluation[]
+enum Role {
+  SUPERVISOR
+  ADMINISTRATOR
+  ADMIN //do sistema, não do usuário
+}
+
+enum QuestionType {
+  TEXT
+  AVALIAÇÃO
+  BOOLEAN
+  CHECKBOX
+  RADIO
+}
+
+model Question {
+  id       String  @id @default(uuid())
+  title    String
+  type     String  @default("TEXT")
+  required Boolean @default(false)
+  order    Int
+
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Form {
+  id        String     @id @default(uuid())
+  name      String
+  anonymous Boolean    @default(true)
+  questions Question[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Supervisor {
-  id          String       @id @default(uuid())
-  name        String
-  companyId   String
-  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  evaluations Evaluation[]
-}
-
-model Evaluation {
-  id           String     @id @default(uuid())
-  supervisorId String
-  companyId    String
-  anonymousId  String
-  lideranca    Int
-  comunicacao  Int
-  respeito     Int
-  organizacao  Int
-  apoioEquipe  Int
-  comment      String?
-  createdAt    DateTime   @default(now())
-  supervisor   Supervisor @relation(fields: [supervisorId], references: [id], onDelete: Cascade)
-  company      Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-}
-
-model AccessLog {
-  id          String   @id @default(uuid())
-  anonymousId String
-  maskedCPF   String
-  fullCPF     String?
-  companyId   String?
-  companyName String?
-  action      String
-  timestamp   DateTime @default(now())
-}
-
-model FormTemplate {
-  id        String         @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  questions FormQuestion[]
+  cpf       String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(SUPERVISOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model FormQuestion {
-  id       String       @id @default(uuid())
-  text     String
-  type     String
-  maxScore Int?
-  tag      String
-  order    Int          @default(0)
-  formId   String
-  form     FormTemplate @relation(fields: [formId], references: [id], onDelete: Cascade)
+model Administrator {
+  id        String   @id @default(uuid())
+  name      String
+  cpf       String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMINISTRATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model admin {
+  id        String   @id @default(uuid())
+  name      String
+  cpf       String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model listaCpf {
+  id        String   @id @default(uuid())
+  cpf       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
