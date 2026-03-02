@@ -27,7 +27,7 @@ export default function HomePage() {
         </h1>
 
         <p className="max-w-lg text-base leading-relaxed text-muted-foreground text-pretty animate-fade-in-up animate-delay-200 sm:text-lg">
-          Contribua com sua avaliação para fortalecer a empresa. Sua resposta é sempre protegida e 100% anônima.
+        Contribua com sua avaliação para fortalecer a empresa. Sua resposta é sempre protegida e 100% anônima.
         </p>
       </section>
 

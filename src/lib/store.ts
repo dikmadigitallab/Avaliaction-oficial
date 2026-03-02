@@ -9,6 +9,15 @@ const COMPANY_LOGOS: Record<string, string> = {
   arcelormittal: "https://i.ibb.co/hx2Cm5yN/Arcelor-Mittal-svg.png",
 }
 
+export type SystemAdmin = {
+  id: string
+  name: string
+  cpf: string
+  permissions: string[]
+  canCreateAdmin: boolean
+  status: "active" | "inactive"
+}
+
 const KEYS = {
   companies: "eval_companies",
   supervisors: "eval_supervisors",
@@ -19,6 +28,9 @@ const KEYS = {
   version: "eval_store_version",
   forms: "eval_forms",
   formResponses: "eval_form_responses",
+
+  adminPermissions: "eval_admin_permissions",
+  adminList: "eval_admin_list",
 } as const
 
 const DEFAULT_COMPANIES: Company[] = [
@@ -52,12 +64,91 @@ export function initializeStore(): void {
     setItem(KEYS.companies, DEFAULT_COMPANIES)
     setItem(KEYS.supervisors, DEFAULT_SUPERVISORS)
     setItem(KEYS.evaluations, [])
+    setItem(KEYS.adminList, [])
     localStorage.setItem(KEYS.initialized, "true")
     localStorage.setItem(KEYS.version, STORE_VERSION)
   }
 }
 
-// Companies
+/* ================= ADMIN SISTEMA ================= */
+
+export function getSystemAdmins(): SystemAdmin[] {
+  return getItem<SystemAdmin[]>(KEYS.adminList, [])
+}
+
+export function addSystemAdmin(admin: Omit<SystemAdmin, "id" | "status">): SystemAdmin {
+  const admins = getSystemAdmins()
+
+  const newAdmin: SystemAdmin = {
+    ...admin,
+    id: crypto.randomUUID(),
+    status: "active",
+  }
+
+  admins.push(newAdmin)
+  setItem(KEYS.adminList, admins)
+  return newAdmin
+}
+
+export function updateSystemAdminStatus(id: string): void {
+  const admins = getSystemAdmins()
+  const index = admins.findIndex((a) => a.id === id)
+  if (index === -1) return
+
+  admins[index].status =
+    admins[index].status === "active" ? "inactive" : "active"
+
+  setItem(KEYS.adminList, admins)
+}
+
+export function setAdminPermissions(permissions: string[]): void {
+  if (typeof window === "undefined") return
+  localStorage.setItem(KEYS.adminPermissions, JSON.stringify(permissions))
+}
+
+export function getAdminPermissions(): string[] {
+  if (typeof window === "undefined") return []
+  const raw = localStorage.getItem(KEYS.adminPermissions)
+  return raw ? JSON.parse(raw) : []
+}
+
+export function clearAdminPermissions(): void {
+  if (typeof window === "undefined") return
+  localStorage.removeItem(KEYS.adminPermissions)
+}
+
+/* ================= ADMIN SESSÃO ================= */
+
+export function verifyAdminCPF(cpf: string): boolean {
+  const cleaned = cpf.replace(/\D/g, "")
+  return cleaned === ADMIN_CPF
+}
+
+export function setAdminSession(name?: string): void {
+  if (typeof window === "undefined") return
+  sessionStorage.setItem("admin_session", "true")
+  if (name) sessionStorage.setItem("admin_name", name)
+}
+
+export function getAdminName(): string {
+  if (typeof window === "undefined") return "Administrador"
+  return sessionStorage.getItem("admin_name") || "Administrador"
+}
+
+export function isAdminAuthenticated(): boolean {
+  if (typeof window === "undefined") return false
+  return sessionStorage.getItem("admin_session") === "true"
+}
+
+export function clearAdminSession(): void {
+  if (typeof window === "undefined") return
+  sessionStorage.removeItem("admin_session")
+  sessionStorage.removeItem("admin_name")
+  clearAdminPermissions()
+}
+
+/* ================= COMPANIES ================= */
+
 export function getCompanies(): Company[] {
   const companies = getItem<Company[]>(KEYS.companies, DEFAULT_COMPANIES)
   return companies.map((c) => ({
@@ -80,12 +171,12 @@ export function addCompany(name: string): Company {
 export function deleteCompany(id: string): void {
   const companies = getCompanies().filter((c) => c.id !== id)
   setItem(KEYS.companies, companies)
-  // Also remove supervisors of this company
   const supervisors = getSupervisors().filter((s) => s.companyId !== id)
   setItem(KEYS.supervisors, supervisors)
 }
 
-// Supervisors
+/* ================= SUPERVISORS ================= */
+
 export function getSupervisors(): Supervisor[] {
   return getItem<Supervisor[]>(KEYS.supervisors, [])
 }
@@ -120,7 +211,8 @@ export function deleteSupervisor(id: string): void {
   setItem(KEYS.supervisors, supervisors)
 }
 
-// Evaluations
+/* ================= EVALUATIONS ================= */
+
 export function getEvaluations(): Evaluation[] {
   return getItem<Evaluation[]>(KEYS.evaluations, [])
 }
@@ -151,35 +243,8 @@ export function addEvaluation(evaluation: Omit<Evaluation, "id" | "createdAt">):
   return newEval
 }
 
-// Admin (CPF-based)
-export function verifyAdminCPF(cpf: string): boolean {
-  const cleaned = cpf.replace(/\D/g, "")
-  return cleaned === ADMIN_CPF
-}
+/* ================= ACCESS LOGS ================= */
 
-export function setAdminSession(name?: string): void {
-  if (typeof window === "undefined") return
-  sessionStorage.setItem("admin_session", "true")
-  if (name) sessionStorage.setItem("admin_name", name)
-}
-
-export function getAdminName(): string {
-  if (typeof window === "undefined") return "Administrador"
-  return sessionStorage.getItem("admin_name") || "Administrador"
-}
-
-export function isAdminAuthenticated(): boolean {
-  if (typeof window === "undefined") return false
-  return sessionStorage.getItem("admin_session") === "true"
-}
-
-export function clearAdminSession(): void {
-  if (typeof window === "undefined") return
-  sessionStorage.removeItem("admin_session")
-  sessionStorage.removeItem("admin_name")
-}
-
-// Access Logs
 export function getAccessLogs(): AccessLog[] {
   return getItem<AccessLog[]>(KEYS.accessLogs, [])
 }
@@ -202,7 +267,8 @@ export function maskCPF(cpf: string): string {
   return `***.***.***.${cleaned.slice(9, 11)}`
 }
 
-// Forms
+/* ================= FORMS ================= */
+
 export function getForms(): FormTemplate[] {
   return getItem<FormTemplate[]>(KEYS.forms, [])
 }
@@ -243,12 +309,12 @@ export function updateForm(id: string, name: string, questions: FormQuestion[]):
 export function deleteForm(id: string): void {
   const forms = getForms().filter((f) => f.id !== id)
   setItem(KEYS.forms, forms)
-  // Also remove responses for this form
   const responses = getFormResponses().filter((r) => r.formId !== id)
   setItem(KEYS.formResponses, responses)
 }
 
-// Form Responses
+/* ================= FORM RESPONSES ================= */
+
 export function getFormResponses(): FormResponse[] {
   return getItem<FormResponse[]>(KEYS.formResponses, [])
 }

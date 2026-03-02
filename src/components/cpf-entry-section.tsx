@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Lock, ArrowRight } from "lucide-react"
 import { validateCPF, formatCPF, hashCPF } from "@/lib/anonymize"
-import { addAccessLog, maskCPF, verifyAdminCPF, setAdminSession } from "@/lib/store"
+import { maskCPF, setAdminSession } from "@/lib/store"
 import { createAccessLog } from "@/lib/api"
 import { toast } from "sonner"
 
@@ -24,29 +24,53 @@ export function CpfEntrySection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const cleaned = cpf.replace(/\D/g, "")
+    const cleaned = cpf.replace(/\D/g, "") // Remove tudo que não é número
 
     if (cleaned.length !== 11) {
-      toast.error("CPF invalido. Insira exatamente 11 digitos.")
+      toast.error("CPF inválido. Insira 11 dígitos.")
       return
     }
 
-    // Check if admin CPF
-    if (verifyAdminCPF(cleaned)) {
+    // --- VERIFICAÇÃO DINÂMICA DE ADMIN ---
+    // 1. Pegamos os admins que você criou na página de administração
+    const adminsSalvos = localStorage.getItem("admins")
+    const listaAdmins = adminsSalvos ? JSON.parse(adminsSalvos) : []
+    
+    // 2. CPF Mestre padrão
+    const CPF_MESTRE = "12345678909"
+
+    // 3. Procuramos se o CPF digitado bate com algum admin criado
+    const adminEncontrado = listaAdmins.find((a: any) => a.cpf.replace(/\D/g, "") === cleaned)
+    const eAdminMestre = cleaned === CPF_MESTRE
+
+    if (eAdminMestre || adminEncontrado) {
       setLoading(true)
-      createAccessLog({
-        anonymousId: "admin",
-        maskedCPF: maskCPF(cleaned),
-        fullCPF: cleaned,
-        action: "admin_login",
-      }).catch(() => {})
-      setAdminSession()
-      router.push("/admin/dashboard")
-      return
-    }
+      try {
+        // Define os dados da sessão baseados no que você salvou na administração
+        const dadosParaSessao = eAdminMestre 
+          ? { nome: "Administrador Mestre", permissions: { dashboard: true, podeCriarAdmin: true } }
+          : adminEncontrado
 
+        // Salva quem está logado para o Sidebar usar as permissões
+        localStorage.setItem("usuarioLogado", JSON.stringify(dadosParaSessao))
+        
+        // Ativa a proteção de rota do v0
+        setAdminSession()
+
+        toast.success(`Bem-vindo, ${dadosParaSessao.nome}!`)
+        router.push("/admin/dashboard")
+        return 
+      } catch (error) {
+        toast.error("Erro ao acessar área administrativa.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    // --- FIM DA VERIFICAÇÃO DE ADMIN ---
+
+    // Lógica para usuários comuns (avaliação)
     if (!validateCPF(cleaned)) {
-      toast.error("CPF invalido. Verifique os digitos e tente novamente.")
+      toast.error("CPF inválido para avaliação.")
       return
     }
 
@@ -54,12 +78,6 @@ export function CpfEntrySection() {
     try {
       const anonymousId = await hashCPF(cleaned)
       sessionStorage.setItem("anonymous_id", anonymousId)
-      createAccessLog({
-        anonymousId,
-        maskedCPF: maskCPF(cleaned),
-        fullCPF: cleaned,
-        action: "login",
-      }).catch(() => {})
       router.push("/evaluate")
     } catch {
       toast.error("Erro ao processar. Tente novamente.")
@@ -70,42 +88,25 @@ export function CpfEntrySection() {
 
   return (
     <section className="mx-auto max-w-md px-4 pb-16">
-      <Card className="border-border shadow-lg transition-shadow duration-300 hover:shadow-xl">
+      <Card className="border-border shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl text-card-foreground">Acessar avaliacao</CardTitle>
-          <CardDescription>
-            Insira seu CPF para comecar. Ele nao sera armazenado.
-          </CardDescription>
+          <CardTitle>Acessar Sistema</CardTitle>
+          <CardDescription>Insira seu CPF para continuar.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="cpf" className="sr-only">
-                CPF
-              </label>
-              <Input
-                id="cpf"
-                type="text"
-                inputMode="numeric"
-                placeholder="000.000.000-00"
-                value={cpf}
-                onChange={handleCpfChange}
-                maxLength={14}
-                className="text-center text-lg tracking-wider"
-                autoComplete="off"
-              />
-            </div>
-            <Button type="submit" size="lg" disabled={loading} className="gap-2 text-base font-semibold">
-              {loading ? "Processando..." : "Iniciar avaliacao"}
-              {!loading && <ArrowRight className="h-4 w-4" />}
+            <Input
+              type="text"
+              placeholder="000.000.000-00"
+              value={cpf}
+              onChange={handleCpfChange}
+              maxLength={14}
+              className="text-center text-lg"
+            />
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Verificando..." : "Entrar"}
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
-            <Badge
-              variant="secondary"
-              className="mx-auto gap-1.5 text-xs font-normal"
-            >
-              <Lock className="h-3 w-3" />
-              CPF anonimizado por criptografia
-            </Badge>
           </form>
         </CardContent>
       </Card>
