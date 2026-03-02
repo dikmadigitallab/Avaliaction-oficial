@@ -1,0 +1,84 @@
+export interface Company {
+  id: string
+  name: string
+  logo?: string
+}
+
+export interface Supervisor {
+  id: string
+  name: string
+  companyId: string
+}
+
+export interface EvaluationRatings {
+  lideranca: number
+  comunicacao: number
+  respeito: number
+  organizacao: number
+  apoioEquipe: number
+}
+
+export interface Evaluation {
+  id: string
+  supervisorId: string
+  companyId: string
+  anonymousId: string
+  ratings: EvaluationRatings
+  comment?: string
+  createdAt: string
+}
+
+export const CRITERIA_LABELS: Record<keyof EvaluationRatings, string> = {
+  lideranca: "Lideranca",
+  comunicacao: "Comunicacao",
+  respeito: "Respeito",
+  organizacao: "Organizacao",
+  apoioEquipe: "Apoio a Equipe",
+}
+
+export const CRITERIA_KEYS = Object.keys(CRITERIA_LABELS) as (keyof EvaluationRatings)[]
+
+export interface AccessLog {
+  id: string
+  anonymousId: string
+  maskedCPF: string
+  fullCPF?: string
+  companyId?: string
+  companyName?: string
+  timestamp: string
+  action: "login" | "evaluation" | "admin_login"
+}
+
+// Forms
+export type QuestionType = "avaliacao" | "texto"
+
+export interface FormQuestion {
+  id: string
+  text: string
+  type: QuestionType
+  maxScore?: number // only for "avaliacao" type
+  tag: string // auto-assigned: "avaliacao" or "texto"
+}
+
+export interface FormTemplate {
+  id: string
+  name: string
+  questions: FormQuestion[]
+  createdAt: string
+  updatedAt: string
+}
+
+// Form Responses
+export interface FormAnswer {
+  questionId: string
+  value: string | number // string for "texto", number for "avaliacao"
+}
+
+export interface FormResponse {
+  id: string
+  formId: string
+  cpfHash: string // SHA-256 hash of the CPF
+  maskedCPF: string // e.g. "***.***.***-09"
+  answers: FormAnswer[]
+  createdAt: string
+}
