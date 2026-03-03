@@ -35,6 +35,7 @@ model Question {
   updatedAt DateTime @updatedAt
 }
 
+//colocar id de quem criou, ao fazer isso vai ser impossivel criar por fora
 model Form {
   id        String     @id @default(uuid())
   name      String
@@ -44,6 +45,8 @@ model Form {
   updatedAt DateTime   @updatedAt
 }
 
+
+//supervisor pode criar formularios
 model Supervisor {
   id        String   @id @default(uuid())
   name      String
@@ -83,3 +86,15 @@ model listaCpf {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Resposta {
+  id        String   @id @default(cuid())
+  formId    String
+  data      Json
+  createdAt DateTime @default(now())
+
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+}
+
