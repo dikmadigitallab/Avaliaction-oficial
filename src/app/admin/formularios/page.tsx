@@ -239,7 +239,7 @@ export default function FormulariosPage() {
           <DialogHeader>
             <DialogTitle>Novo formulario</DialogTitle>
           </DialogHeader>
-          <FormBuilder onSave={handleCreate} submitLabel="Salvar formulario" />
+          <FormBuilder /* onSave={handleSave}  */submitLabel="Salvar formulario" />
         </DialogContent>
       </Dialog>
 
