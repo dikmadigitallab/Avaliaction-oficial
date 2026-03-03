@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/context/AuthContext";
 
 import "./globals.css"
-
-
-
-
 
 export const metadata: Metadata = {
   title: "Dikma | Avaliacao Anonima de Supervisores",
@@ -35,15 +32,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
-          storageKey="dikma-theme"
-        >
-          <main>{children}</main>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange={false}
+            storageKey="dikma-theme"
+          >
+            <main>{children}</main>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )

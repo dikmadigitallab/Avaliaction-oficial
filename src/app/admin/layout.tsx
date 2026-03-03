@@ -1,42 +1,33 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
-import { isAdminAuthenticated, initializeStore } from "@/lib/store"
+import { useAuth } from "@/context/AuthContext"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [ready, setReady] = useState(false)
-  const mounted = useRef(true)
+  const { isAdmin } = useAuth()
 
-  // The login page (/admin) does not use the sidebar layout
   const isLoginPage = pathname === "/admin"
 
   useEffect(() => {
-    mounted.current = true
-    initializeStore()
-
-    if (!isLoginPage && !isAdminAuthenticated()) {
+    if (!isLoginPage && !isAdmin) {
       router.replace("/admin")
-      return
     }
+  }, [isAdmin, isLoginPage, router])
 
-    if (mounted.current) setReady(true)
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
-    return () => {
-      mounted.current = false
-    }
-  }, [router, isLoginPage])
-
-  // Login page renders without sidebar
-  if (isLoginPage) return <>{children}</>
-
-  if (!ready) {
+  if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30">
-        <p className="text-muted-foreground animate-pulse">Carregando painel...</p>
+        <p className="text-muted-foreground animate-pulse">
+          Verificando acesso...
+        </p>
       </div>
     )
   }

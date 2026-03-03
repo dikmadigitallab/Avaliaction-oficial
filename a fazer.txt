@@ -1,4 +1,4 @@
-criar formulario coletar nome e cpf opcional.
+criar formulario coletar nome e cpf opcional. - feito
 salvar respostas como Json
 criar logica de geração de usuario e criar um usuario pro douglas
 infomar o id do criador do form no prisma e mudar a logica pra pegar
