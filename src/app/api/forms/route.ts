@@ -1,74 +1,103 @@
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
 
-export async function GET() {
-  try {
-    const forms = await prisma.formTemplate.findMany({
-      include: { questions: { orderBy: { order: "asc" } } },
-      orderBy: { updatedAt: "desc" },
-    })
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
 
-    const mapped = forms.map((f) => ({
-      id: f.id,
-      name: f.name,
-      createdAt: f.createdAt.toISOString(),
-      updatedAt: f.updatedAt.toISOString(),
-      questions: f.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        type: q.type,
-        maxScore: q.maxScore,
-        tag: q.tag,
-      })),
-    }))
-
-    return NextResponse.json(mapped)
-  } catch (error) {
-    console.error("Failed to get forms:", error)
-    return NextResponse.json({ error: "Failed to get forms" }, { status: 500 })
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { name, questions } = body
-
-    if (!name || !questions || !Array.isArray(questions)) {
-      return NextResponse.json({ error: "Name and questions are required" }, { status: 400 })
-    }
-
-    const form = await prisma.formTemplate.create({
-      data: {
-        name,
+  if (id) {
+    const form = await prisma.form.findUnique({
+      where: { id },
+      include: {
         questions: {
-          create: questions.map((q: { id?: string; text: string; type: string; maxScore?: number; tag: string }, index: number) => ({
-            text: q.text,
-            type: q.type,
-            maxScore: q.maxScore || null,
-            tag: q.tag,
-            order: index,
-          })),
+          orderBy: { order: "asc" },
         },
       },
-      include: { questions: { orderBy: { order: "asc" } } },
     })
 
-    return NextResponse.json({
-      id: form.id,
-      name: form.name,
-      createdAt: form.createdAt.toISOString(),
-      updatedAt: form.updatedAt.toISOString(),
-      questions: form.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        type: q.type,
-        maxScore: q.maxScore,
-        tag: q.tag,
-      })),
-    }, { status: 201 })
-  } catch (error) {
-    console.error("Failed to create form:", error)
-    return NextResponse.json({ error: "Failed to create form" }, { status: 500 })
+    if (!form) {
+      return NextResponse.json({ error: "Form não encontrado" }, { status: 404 })
+    }
+
+    return NextResponse.json(form)
+  }
+
+  const forms = await prisma.form.findMany({
+    include: {
+      questions: {
+        orderBy: { order: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  return NextResponse.json(forms)
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { name, anonymous } = body
+
+    if (!name) {
+      return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 })
+    }
+
+    const form = await prisma.form.create({
+      data: {
+        name,
+        anonymous: anonymous ?? true,
+      },
+    })
+
+    return NextResponse.json(form, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: "Erro ao criar form" }, { status: 500 })
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get("id")
+
+    if (!id) {
+      return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 })
+    }
+
+    const body = await req.json()
+    const { name, anonymous } = body
+
+    const form = await prisma.form.update({
+      where: { id },
+      data: {
+        name,
+        anonymous,
+      },
+    })
+
+    return NextResponse.json(form)
+  } catch {
+    return NextResponse.json({ error: "Erro ao atualizar form" }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get("id")
+
+    if (!id) {
+      return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 })
+    }
+
+    await prisma.form.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ message: "Form removido com sucesso" })
+  } catch {
+    return NextResponse.json({ error: "Erro ao deletar form" }, { status: 500 })
+  }
+}
+

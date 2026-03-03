@@ -1,1 +1,11 @@
 criar formulario coletar nome e cpf opcional.
+salvar respostas como Json
+criar logica de geração de usuario e criar um usuario pro douglas
+infomar o id do criador do form no prisma e mudar a logica pra pegar
+deixar o douglas como user nativo no codigo
+nas respostas tem de que de alguma forma apontar pro usuario que criou, pode ser pelo form/iduser
+gerar o link compartilhavel, passar pela pagina de validação de cpf
+criar logica de cpfs autorizados
+na pagina de validação  ela tem que saber qual forms ela vai apontar talves a pagina precise estar mais oumenos assim: http://localhost:3000/avalia-form/asdfasdfasdfasdf dessa 
+forma podemos avaliar se o usuario que informou o cpf tem permissçao pra responder o formulario
+
