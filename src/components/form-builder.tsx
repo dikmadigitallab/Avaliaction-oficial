@@ -38,25 +38,27 @@ export type QuestionType =
   | "BOOLEAN"
   | "CHECKBOX"
   | "RADIO"
+  | "LIST"
 
 export interface FormQuestion {
   id: string
   text: string
   type: QuestionType
   maxScore?: number
+  options?: string[]
 }
 
 interface FormBuilderProps {
   initialName?: string
   initialQuestions?: FormQuestion[]
-  onSave: (name: string, questions: FormQuestion[]) => void
+  //onSave: (name: string, questions: FormQuestion[]) => void
   submitLabel?: string
 }
 
 export function FormBuilder({
   initialName = "",
   initialQuestions = [],
-  onSave,
+ // onSave,
   submitLabel = "Salvar formulario",
 }: FormBuilderProps) {
   const [formName, setFormName] = useState(initialName)
@@ -70,12 +72,22 @@ export function FormBuilder({
   const [newQuestionType, setNewQuestionType] =
     useState<QuestionType | "">("")
   const [newMaxScore, setNewMaxScore] = useState("")
+  const [newOptions, setNewOptions] = useState<string[]>([])
+  const [newOptionText, setNewOptionText] = useState("")
 
   const resetNewQuestion = () => {
     setNewQuestionText("")
     setNewQuestionType("")
     setNewMaxScore("")
+    setNewOptions([])
+    setNewOptionText("")
     setIsAddingQuestion(false)
+  }
+
+  const handleAddOption = () => {
+    if (!newOptionText.trim()) return
+    setNewOptions((prev) => [...prev, newOptionText.trim()])
+    setNewOptionText("")
   }
 
   const handleAddQuestion = () => {
@@ -97,12 +109,23 @@ export function FormBuilder({
       return
     }
 
+    if (
+      (newQuestionType === "BOOLEAN" || newQuestionType === "LIST") &&
+      newOptions.length < 1
+    ) {
+      toast.error("Adicione pelo menos uma opção.")
+      return
+    }
+
     const question: FormQuestion = {
       id: crypto.randomUUID(),
       text: newQuestionText.trim(),
       type: newQuestionType,
       ...(newQuestionType === "AVALIACAO"
         ? { maxScore: Number(newMaxScore) }
+        : {}),
+      ...(newQuestionType === "BOOLEAN" || newQuestionType === "LIST"
+        ? { options: newOptions }
         : {}),
     }
 
@@ -117,6 +140,8 @@ export function FormBuilder({
     )
   }
 
+
+/* 
   const handleSubmit = () => {
     if (!formName.trim()) {
       toast.error("Informe o nome do formulario.")
@@ -130,6 +155,59 @@ export function FormBuilder({
 
     onSave(formName.trim(), questions)
   }
+ */
+
+
+const handleSubmit = async () => {
+  if (!formName.trim()) {
+    toast.error("Informe o nome do formulário.")
+    return
+  }
+
+  if (questions.length === 0) {
+    toast.error("Adicione pelo menos uma pergunta.")
+    return
+  }
+
+  try {
+    // 1️⃣ Salvar formulário
+    const formRes = await fetch("/api/forms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: formName.trim() }),
+    })
+
+    if (!formRes.ok) throw new Error("Erro ao salvar o formulário")
+
+    const formData = await formRes.json()
+    const formId = formData.id
+    if (!formId) throw new Error("ID do formulário não retornado")
+
+    // 2️⃣ Salvar perguntas individualmente
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i]
+      const query = new URLSearchParams({ formId }).toString()
+
+      await fetch(`/api/forms/questions?${query}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: q.text,
+          type: q.type,
+          required: true, // você pode tornar personalizável
+          order: i,
+        }),
+      })
+    }
+
+    alert("Formulário e perguntas salvos com sucesso!")
+    setFormName("")
+    setQuestions([])
+  } catch (error: any) {
+    toast.error(error.message || "Erro ao salvar o formulário")
+  }
+}
+
 
   const renderTypeBadge = (type: QuestionType) => {
     switch (type) {
@@ -166,6 +244,13 @@ export function FormBuilder({
           <Badge variant="secondary" className="gap-1 text-xs">
             <Circle className="h-3 w-3" />
             Radio
+          </Badge>
+        )
+      case "LIST":
+        return (
+          <Badge variant="secondary" className="gap-1 text-xs">
+            <Circle className="h-3 w-3" />
+            Lista
           </Badge>
         )
     }
@@ -238,6 +323,17 @@ export function FormBuilder({
                         Nota max: {q.maxScore}
                       </Badge>
                     )}
+                  {(q.type === "BOOLEAN" || q.type === "LIST") &&
+                    q.options &&
+                    q.options.map((opt, i) => (
+                      <Badge
+                        key={i}
+                        variant="outline"
+                        className="text-xs"
+                      >
+                        {opt}
+                      </Badge>
+                    ))}
                 </div>
               </div>
               <Button
@@ -300,16 +396,16 @@ export function FormBuilder({
                         <SelectItem value="RADIO">
                           Radio
                         </SelectItem>
+                        <SelectItem value="LIST">
+                          Lista
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {newQuestionType ===
-                    "AVALIACAO" && (
+                  {newQuestionType === "AVALIACAO" && (
                     <div>
-                      <Label>
-                        Nota maxima *
-                      </Label>
+                      <Label>Nota maxima *</Label>
                       <Input
                         type="number"
                         min={1}
@@ -323,6 +419,44 @@ export function FormBuilder({
                     </div>
                   )}
 
+                  {(newQuestionType === "BOOLEAN" ||
+                    newQuestionType === "LIST") && (
+                    <div className="flex flex-col gap-2">
+                      <Label>Opções *</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={newOptionText}
+                          onChange={(e) =>
+                            setNewOptionText(e.target.value)
+                          }
+                          placeholder="Digite uma opção"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleAddOption}
+                        >
+                          Adicionar
+                        </Button>
+                      </div>
+                      <div className="flex gap-2 flex-wrap mt-2">
+                        {newOptions.map((opt, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="gap-1 text-xs cursor-pointer"
+                            onClick={() =>
+                              setNewOptions((prev) =>
+                                prev.filter((_, i) => i !== idx)
+                              )
+                            }
+                          >
+                            {opt} <Trash2 className="h-3 w-3" />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -333,9 +467,7 @@ export function FormBuilder({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={
-                        resetNewQuestion
-                      }
+                      onClick={resetNewQuestion}
                     >
                       Cancelar
                     </Button>
@@ -355,6 +487,9 @@ export function FormBuilder({
         >
           <Save className="h-4 w-4" />
           {submitLabel}
+          
+          {/* handle aqui */}
+        
         </Button>
       </div>
     </div>
