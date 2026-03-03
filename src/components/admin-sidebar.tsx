@@ -16,6 +16,8 @@ import {
   Menu,
   UserCircle,
   ClipboardList,
+  ShieldCheck,
+  Airplay,
 } from "lucide-react"
 import { clearAdminSession } from "@/lib/store"
 import { useState, useEffect } from "react"
@@ -28,7 +30,9 @@ const NAV_ITEMS = [
   { href: "/admin/logs", label: "Logs de Acesso", icon: FileText, permission: "logs" },
   { href: "/admin/supervisores", label: "Supervisores", icon: Users, permission: "supervisores" },
   { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3, permission: "relatorios" },
-  { href: "/admin/administracao", label: "Administração", icon: UserCircle, permission: "podeCriarAdmin" },
+  { href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
+  { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
+  { href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -36,23 +40,25 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter()
   const [userData, setUserData] = useState<{ nome: string; permissions: any } | null>(null)
 
-  // Carrega os dados do usuário logado para aplicar as permissões
   useEffect(() => {
     const session = localStorage.getItem("usuarioLogado")
     if (session) {
-      setUserData(JSON.parse(session))
+      try {
+        setUserData(JSON.parse(session))
+      } catch (e) {
+        console.error("Erro ao carregar sessão:", e)
+      }
     }
   }, [])
 
   const handleLogout = () => {
     clearAdminSession()
-    localStorage.removeItem("usuarioLogado") // Limpa os dados do usuário ao sair
+    localStorage.removeItem("usuarioLogado")
     router.push("/admin")
   }
 
   return (
     <div className="flex h-full flex-col bg-[oklch(0.20_0.04_240)] text-white">
-      {/* Logo */}
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
         <Image
           src="https://i.ibb.co/Z61BpdnN/download.png"
@@ -64,18 +70,32 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         />
       </div>
 
-      {/* Nav Dinâmica baseada em permissões */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4 text-white">
         {NAV_ITEMS.map((item) => {
-          // Se for admin mestre ou tiver a permissão específica, mostra o item
-          const hasPermission = userData?.permissions?.[item.permission] || userData?.nome === "Administrador Mestre"
+          const isMestre = userData?.nome === "Administrador Mestre"
+          const permissionValue = userData?.permissions?.[item.permission]
+
+          // LÓGICA DE EXIBIÇÃO:
+          // 1. Se for mestre, sempre vê.
+          // 2. Se a permissão for 'administracao' (botões que você quer esconder), só vê se for TRUE.
+          // 3. Para os outros itens, se for 'undefined' (não configurado), a gente mostra para não quebrar o menu.
+          let canShow = false
           
-          if (!hasPermission && userData) return null
+          if (isMestre) {
+            canShow = true
+          } else if (item.permission === "administracao") {
+            canShow = permissionValue === true
+          } else {
+            // Se for dashboard, feedbacks, etc, mostra se for true OU se ainda não estiver definido
+            canShow = permissionValue === true || permissionValue === undefined
+          }
+
+          if (!canShow) return null
 
           const isActive = pathname === item.href
           return (
             <Link
-              key={item.href}
+              key={item.href + item.label}
               href={item.href}
               onClick={onNavigate}
               className={cn(
@@ -92,7 +112,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      {/* User Info */}
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center justify-between mb-3 px-1">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -144,7 +163,7 @@ export function AdminSidebar() {
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-60 p-0 [&>button]:hidden">
+            <SheetContent side="left" className="w-60 p-0 [&>button]:hidden bg-[oklch(0.20_0.04_240)] border-none">
               <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
               <SidebarContent onNavigate={() => setOpen(false)} />
             </SheetContent>
@@ -154,7 +173,7 @@ export function AdminSidebar() {
             alt="Dikma"
             width={80}
             height={27}
-            className="h-6 w-auto"
+            className="h-6 w-auto brightness-0 invert"
             unoptimized
           />
         </div>

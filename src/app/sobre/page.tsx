@@ -78,8 +78,7 @@ export default function SobrePage() {
               Sobre a plataforma
             </h1>
             <p className="mt-2 max-w-2xl animate-fade-in-up animate-delay-200 text-pretty text-sm text-muted-foreground sm:mt-3 sm:text-base md:text-lg">
-              Uma plataforma criada para promover a melhoria continua no
-              ambiente de trabalho atraves de feedbacks anonimos e construtivos.
+            Plataforma desenvolvida para impulsionar a melhoria contínua no ambiente de trabalho por meio de feedbacks anônimos e construtivos, fortalecendo a comunicação e o desenvolvimento organizacional.
             </p>
           </div>
         </section>
@@ -222,7 +221,7 @@ export default function SobrePage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground md:flex-row">
           <div className="flex items-center gap-2 h-6 sm:h-8">
             <Image src="https://i.ibb.co/Z61BpdnN/download.png" alt="Dikma" width={80} height={27} className="h-6 w-auto" />
-            <span>2026</span>
+            <span></span>
           </div>
           <div className="flex gap-6">
             <Link href="/" className="hover:text-foreground transition-colors">
