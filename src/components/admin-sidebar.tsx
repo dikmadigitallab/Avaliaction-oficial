@@ -18,6 +18,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Airplay,
+  Mail,
 } from "lucide-react"
 import { clearAdminSession } from "@/lib/store"
 import { useState, useEffect } from "react"
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
   { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
   { href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
+  { href: "/admin/respostas", label: "Respostas", icon: Mail, permission: "Respostas" },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {

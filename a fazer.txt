@@ -32,3 +32,23 @@ testar login e senha errado: ok
 testar login certo e senha errada:ok
 login com dados corretos: ok
 
+
+formulario
+Testas Envio de link whatzap: 
+Testar Exportação de dados quanto Ecxel ou Pdf: 
+Parte de colocar o cpf na hora de entrar no formulario colocar 11 digitos!: (Fazer)
+Testar link de compartilamento de formulario: ok
+testar Envio por email: ok
+testar envio de link whatzap: (esta enviando mostrar oscar)
+
+
+
+
+
+A Fazer
+Criar pagina de visualiação de respostas: 
+Criar logs de acesso: (esse acesso somente os desenvolvedores terão acesso!)
+criar o deshboard:  (de dados se estão todos respondendo etc.)
+Criar um sidebar de Exportação: 
+Criar relatorios: (Ja esta na pagina admin so falta completar!) 
+Criar uma exportação de das respostas da data do começo e da data do fim, nisso exportar todas as avaliações! 
