@@ -37,10 +37,11 @@ model Question {
 
 //colocar id de quem criou, ao fazer isso vai ser impossivel criar por fora
 model Form {
-  id        String     @id @default(uuid())
+  id        String     @id @default(uuid()) //id quem crio
   name      String
   anonymous Boolean    @default(true)
   questions Question[]
+  respostas Resposta[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -90,7 +91,6 @@ model listaCpf {
 model Resposta {
   id        String   @id @default(cuid())
   formId    String
-  data      Json
   createdAt DateTime @default(now())
 
   form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
