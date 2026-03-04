@@ -1,11 +1,34 @@
 criar formulario coletar nome e cpf opcional. - feito
 salvar respostas como Json
 criar logica de geração de usuario e criar um usuario pro douglas
+criar auntenticação: - feito
 infomar o id do criador do form no prisma e mudar a logica pra pegar
 deixar o douglas como user nativo no codigo
+
 nas respostas tem de que de alguma forma apontar pro usuario que criou, pode ser pelo form/iduser
-gerar o link compartilhavel, passar pela pagina de validação de cpf
+
+gerar o link compartilhavel, passar pela pagina de validação de cpf feito
+
 criar logica de cpfs autorizados
-na pagina de validação  ela tem que saber qual forms ela vai apontar talves a pagina precise estar mais oumenos assim: http://localhost:3000/avalia-form/asdfasdfasdfasdf dessa 
-forma podemos avaliar se o usuario que informou o cpf tem permissçao pra responder o formulario
+
+na pagina de validação  ela tem que saber qual forms ela vai apontar talves a pagina precise estar mais oumenos assim dessa 
+forma podemos avaliar se o usuario que informou o cpf tem permissçao pra responder o formulario fetio
+
+teste
+Landing page:
+landing page botão de tema: ok
+menu: ok
+botão de acesso adm: ok
+botão como funciona: ok
+botão com logo da dikma: funciona (possibilidade de colocar refresh na tela inicial ao clicar)
+
+
+Login:
+campo de texto login: ok
+campo senha: ok
+link voltar ao iniciao: ok
+botão entrar: ok
+testar login e senha errado: ok
+testar login certo e senha errada:ok
+login com dados corretos: ok
 
