@@ -20,7 +20,6 @@ import {
   TrendingUp,
   Download,
 } from "lucide-react"
-import * as XLSX from "xlsx"
 
 /* ================= MOCK DATA ================= */
 
@@ -64,52 +63,127 @@ const recentEvaluations = [
   },
 ]
 
-/* ================= EXPORTAÇÃO EXCEL ================= */
+/* ================= EXPORTAÇÃO EXCEL PROFISSIONAL ================= */
 
-function exportToExcel() {
-  const wb = XLSX.utils.book_new()
+async function exportToExcel() {
+  const ExcelJS = (await import("exceljs")).default
 
-  // DASHBOARD RESUMO
-  const dashboardResumo = [
-    ["Painel de Controle"],
-    [],
-    ["Total de Admins", adminsCount],
-    ["Colaboradores", employeesCount],
-    ["Supervisores", supervisorsCount],
-    ["Avaliações", evaluationsCount],
-    ["Avaliação Média", avgEvaluation.toFixed(1)],
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet("Dashboard")
+
+  const exportDate = new Date()
+  const exportDateFormatted = exportDate.toLocaleDateString("pt-BR")
+  const exportTimeFormatted = exportDate.toLocaleTimeString("pt-BR")
+
+  worksheet.mergeCells("A1:L1")
+  const titleCell = worksheet.getCell("A1")
+  titleCell.value = "Relatório Dashboard de Avaliações"
+  titleCell.font = { bold: true, size: 14 }
+  worksheet.getRow(1).height = 25
+
+  worksheet.mergeCells("A2:L2")
+  const subtitleCell = worksheet.getCell("A2")
+  subtitleCell.value = `Plataforma Dikma | ${exportDateFormatted} às ${exportTimeFormatted}`
+  subtitleCell.font = { size: 10 }
+  worksheet.getRow(2).height = 18
+
+  worksheet.getRow(3).height = 10
+
+  const headers = [
+    "Data",
+    "Empresa",
+    "Supervisor",
+    "Liderança",
+    "Comunicação",
+    "Respeito",
+    "Organização",
+    "Apoio",
+    "Média",
+    "Classificação",
+    "Comentário",
   ]
 
-  const dashboardWS = XLSX.utils.aoa_to_sheet(dashboardResumo)
-  XLSX.utils.book_append_sheet(wb, dashboardWS, "Resumo Dashboard")
+  const headerRow = worksheet.getRow(4)
 
-  // AVALIAÇÕES POR DIA
-  const avaliacoesDiaWS = XLSX.utils.json_to_sheet(evaluationsByDay)
-  XLSX.utils.book_append_sheet(wb, avaliacoesDiaWS, "Avaliacoes por Dia")
+  headers.forEach((header, index) => {
+    const cell = headerRow.getCell(index + 1)
+    cell.value = header
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF10B981" },
+    }
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } }
+    cell.alignment = { horizontal: "center" }
+  })
 
-  // DISTRIBUIÇÃO DE NOTAS
-  const distribuicaoWS = XLSX.utils.json_to_sheet(scoreDistribution)
-  XLSX.utils.book_append_sheet(wb, distribuicaoWS, "Distribuicao de Notas")
+  worksheet.getRow(4).height = 20
 
-  // AVALIAÇÕES DETALHADAS
-  const detalhadoData = recentEvaluations.map((e) => ({
-    Data: e.date,
-    Empresa: e.company,
-    Supervisor: e.supervisor,
-    Lideranca: e.Lideranca,
-    Comunicacao: e.Comunicacao,
-    Respeito: e.Respeito,
-    Organizacao: e.Organizacao,
-    ApoioEquipe: e.ApoioEquipe,
-    Media: e.avgScore,
-    Classificacao: e.Classificacao,
-    Comentario: e.Comentario,
-  }))
+  recentEvaluations.forEach((e, index) => {
+    const row = worksheet.getRow(5 + index)
 
-  const detalhadoWS = XLSX.utils.json_to_sheet(detalhadoData)
-  XLSX.utils.book_append_sheet(wb, detalhadoWS, "Avaliacoes Detalhadas")
+    const values = [
+      e.date,
+      e.company,
+      e.supervisor,
+      e.Lideranca,
+      e.Comunicacao,
+      e.Respeito,
+      e.Organizacao,
+      e.ApoioEquipe,
+      e.avgScore,
+      e.Classificacao,
+      e.Comentario,
+    ]
 
-  XLSX.writeFile(wb, "dashboard_relatorio.xlsx")
+    values.forEach((value, i) => {
+      const cell = row.getCell(i + 1)
+      cell.value = value
+      cell.alignment = { horizontal: "center" }
+    })
+  })
+
+  worksheet.columns = [
+    { width: 12 },
+    { width: 16 },
+    { width: 18 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 10 },
+    { width: 16 },
+    { width: 30 },
+  ]
+
+  const footerRow = 6 + recentEvaluations.length
+
+  worksheet.mergeCells(`A${footerRow}:L${footerRow}`)
+  const footerCell = worksheet.getCell(`A${footerRow}`)
+  footerCell.value = `Total de avaliações: ${recentEvaluations.length} | Exportado em ${exportDateFormatted}`
+  footerCell.font = { size: 9 }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  })
+
+  const link = document.createElement("a")
+  const url = URL.createObjectURL(blob)
+
+  link.href = url
+  link.download = `dashboard-avaliacoes-${exportDateFormatted.replace(
+    /\//g,
+    "-"
+  )}.xlsx`
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  URL.revokeObjectURL(url)
 }
 
 /* ================= CARD ================= */
@@ -146,7 +220,6 @@ function StatCard({
 export default function DashboardContent() {
   return (
     <main className="bg-gray-50 min-h-screen p-8 max-w-7xl mx-auto space-y-8 relative">
-      {/* BOTÃO EXPORTAR */}
       <button
         onClick={exportToExcel}
         className="absolute top-8 right-8 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
@@ -155,7 +228,6 @@ export default function DashboardContent() {
         Exportar Excel
       </button>
 
-      {/* TÍTULO */}
       <section>
         <h1 className="text-2xl font-bold text-gray-900">
           Painel de Controle
@@ -165,7 +237,6 @@ export default function DashboardContent() {
         </p>
       </section>
 
-      {/* CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
         <StatCard
           icon={<User size={24} />}
@@ -199,7 +270,6 @@ export default function DashboardContent() {
         />
       </section>
 
-      {/* GRÁFICOS */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="font-semibold text-gray-800 mb-4">
@@ -228,7 +298,13 @@ export default function DashboardContent() {
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={scoreDistribution}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="label" interval={0} angle={-30} textAnchor="end" height={60} />
+              <XAxis
+                dataKey="label"
+                interval={0}
+                angle={-30}
+                textAnchor="end"
+                height={60}
+              />
               <YAxis domain={[0, 40]} />
               <Tooltip />
               <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
@@ -237,11 +313,11 @@ export default function DashboardContent() {
         </div>
       </section>
 
-      {/* TABELA */}
       <section className="bg-white rounded-lg shadow p-6">
         <h2 className="font-semibold text-gray-800 mb-4">
           Avaliações Recentes
         </h2>
+
         <div className="overflow-x-auto">
           <table className="w-full table-auto text-left border-collapse">
             <thead>
@@ -254,7 +330,10 @@ export default function DashboardContent() {
             </thead>
             <tbody>
               {recentEvaluations.map((ev, i) => (
-                <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
+                <tr
+                  key={i}
+                  className="border-b border-gray-200 hover:bg-gray-50"
+                >
                   <td className="py-2 px-3">{ev.supervisor}</td>
                   <td className="py-2 px-3">{ev.company}</td>
                   <td className="py-2 px-3">{ev.avgScore}</td>
