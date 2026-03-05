@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
   const { login } = useAuth()
   const router = useRouter()
 
-  const [cpf, setCpf] = useState("")
+  const [cpf, setCpf] = useState("123.987.456-60")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
@@ -84,8 +84,9 @@ const handleSubmit = (e: React.FormEvent) => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
               type="text"
+              
               inputMode="numeric"
-              value={cpf}
+              value={'123.987.456-60'} //cpf
               onChange={handleCpfChange}
               placeholder="000.000.000-00"
               maxLength={14}
@@ -95,7 +96,7 @@ const handleSubmit = (e: React.FormEvent) => {
 
             <Input
               type="password"
-              value={password}
+              value={password} //password
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
               autoComplete="off"

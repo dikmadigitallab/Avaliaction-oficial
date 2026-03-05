@@ -52,19 +52,21 @@ export default function FormViewPage() {
   const [name, setName] = useState("")
 
   useEffect(() => {
-    async function fetchForm() {
-      try {
-        const res = await fetch(`/api/forms?id=${formId}`)
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setForm(data)
-        setName(data.name)
-      } catch {
-        toast.error("Erro ao carregar formulario.")
-      } finally {
-        setLoading(false)
-      }
-    }
+ async function fetchForm() {
+  try {
+    const res = await fetch(`/api/forms/details?id=${formId}`)
+    if (!res.ok) throw new Error()
+
+    const data = await res.json()
+
+    setForm(data)
+    setName(data.name)
+  } catch {
+    toast.error("Erro ao carregar formulario.")
+  } finally {
+    setLoading(false)
+  }
+}
 
     if (formId) fetchForm()
   }, [formId])
