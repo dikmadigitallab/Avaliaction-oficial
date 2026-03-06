@@ -42,30 +42,32 @@ export default function RespostasPage() {
   if (loading) return <div className="p-6 text-white">Carregando...</div>
 
   return (
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
-      <h1 className="text-2xl font-bold mb-6">Respostas</h1>
+      <div className="p-6 bg-gray-900 min-h-screen text-white">
+        <h1 className="text-2xl font-bold mb-6">Respostas</h1>
 
-      {erro && <div className="text-red-500 mb-4">{erro}</div>}
+        {erro && <div className="text-red-500 mb-4">{erro}</div>}
 
-      {respostas.length === 0 && !erro ? (
-        <div className="text-gray-300">Nenhuma resposta encontrada.</div>
-      ) : (
-        <div className="space-y-4">
-          {respostas.map((resposta) => (
-            <div
-              key={resposta.id}
-              className="border border-gray-700 rounded-lg p-4 bg-gray-800 shadow"
-            >
-              <div className="text-sm text-gray-400 mb-2">
-                {new Date(resposta.createdAt).toLocaleString()}
+        {respostas.length === 0 && !erro ? (
+          <div className="text-gray-300">Nenhuma resposta encontrada.</div>
+        ) : (
+          <div className="space-y-4">
+            {respostas.map((resposta) => (
+              <div
+                key={resposta.id}
+                className="border border-gray-700 rounded-lg p-4 bg-gray-800 shadow"
+              >
+                <div className="text-sm text-gray-400 mb-2">
+                  {new Date(resposta.createdAt).toLocaleString()}
+                </div>
+                <pre className="text-sm overflow-auto text-gray-100">
+                  {JSON.stringify(resposta.respostas, null, 2)}
+                </pre>
               </div>
-              <pre className="text-sm overflow-auto text-gray-100">
-                {JSON.stringify(resposta.respostas, null, 2)}
-              </pre>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
   )
 }
+
+//andre felipe
