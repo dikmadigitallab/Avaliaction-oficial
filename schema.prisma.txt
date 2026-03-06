@@ -79,7 +79,7 @@ model Question {
 
 model Resposta {
   id        String   @id @default(cuid())
-  respostas Json
+
   formId    String
   form      Form     @relation(fields: [formId], references: [id])
 

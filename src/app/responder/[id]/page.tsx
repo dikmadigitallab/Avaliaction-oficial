@@ -1,136 +1,105 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useState } from "react"
+import { useRouter, useParams } from "next/navigation"
+import Image from "next/image"
+import { SiteHeader } from "@/components/site-header"
+import { FeaturesSection } from "@/components/features-section"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
-type QuestionType =
-  | "TEXT"
-  | "AVALIACAO"
-  | "BOOLEAN"
-  | "CHECKBOX"
-  | "RADIO"
-  | "LIST"
-
-interface Question {
-  id: string
-  title: string
-  type: QuestionType
-  required: boolean
-  order: number
-  options?: string[]
-}
-
-interface Form {
-  id: string
-  name: string
-  questions: Question[]
-}
-
-export default function FormResponsePage() {
-  
+export default function HomePage() {
+  const router = useRouter()
   const params = useParams()
-  const formId = params?.id as string | undefined
-  const [form, setForm] = useState<Form | null>(null)
-  const [answers, setAnswers] = useState<Record<string, any>>({})
+  const formId = params?.id as string
 
-
-
-  useEffect(() => {
-    if (!formId) return
-    fetch(`/api/forms?id=${formId}`)
-      .then((res) => res.json())
-      .then((data) => setForm(data))
-      .catch(() => toast.error("Erro ao carregar formulário"))
-  }, [formId])
-
-  const handleChange = (questionId: string, value: any) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }))
-  }
+  const [cpf, setCpf] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!form) return
+    if (!cpf.trim()) {
+      toast.error("Informe o CPF.")
+      return
+    }
 
-    // Validar respostas obrigatórias
-    for (const q of form.questions) {
-      if (q.required && (answers[q.id] === undefined || answers[q.id] === "")) {
-        toast.error(`Resposta obrigatória: ${q.title}`)
-        return
-      }
+    if (!formId) {
+      toast.error("Formulario invalido.")
+      return
     }
 
     try {
-      await fetch(`/api/forms?id=${form.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formId: form.id, answers }),
-      })
-      toast.success("Respostas enviadas com sucesso!")
-      setAnswers({})
+      setLoading(true)
+
+      const res = await fetch(
+        `/api/authForm?cpf=${encodeURIComponent(
+          cpf
+        )}&formId=${encodeURIComponent(formId)}`
+      )
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || "Nao autorizado.")
+        return
+      }
+
+      router.push(data.link)
     } catch {
-      toast.error("Erro ao enviar respostas")
+      toast.error("Erro ao validar CPF.")
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (!form) return <p>Carregando formulário...</p>
-
   return (
-   <div className="flex justify-center items-start min-h-screen p-6 bg-gray-900">
-  <div className="w-full max-w-3xl bg-gray-800 text-white p-8 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto" style={{ maxHeight: "90vh" }}>
-    <h1 className="text-3xl font-bold text-center">{form.name}</h1>
+    <div className="flex min-h-screen flex-col bg-background">
+      <SiteHeader />
 
-    {form.questions.map((q) => (
-      <div key={q.id} className="flex flex-col gap-2">
-        <label className="font-medium">
-          {q.title} {q.required && "*"}
-        </label>
-
-        {q.type === "TEXT" && (
-          <Input
-            value={answers[q.id] || ""}
-            onChange={(e) => handleChange(q.id, e.target.value)}
-            className="bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+      <section className="flex flex-col items-center gap-4 px-4 pt-12 pb-10 text-center sm:pt-16 sm:pb-12">
+        <div className="flex items-center gap-2 h-10 sm:h-12">
+          <Image
+            src="https://i.ibb.co/Z61BpdnN/download.png"
+            alt="Dikma"
+            width={120}
+            height={40}
+            className="h-10 w-auto sm:h-12"
+            priority
           />
-        )}
+        </div>
 
-        {(q.type === "BOOLEAN" || q.type === "LIST") && q.options && (
-          <select
-            value={answers[q.id] || ""}
-            onChange={(e) => handleChange(q.id, e.target.value)}
-            className="bg-gray-700 text-white border border-gray-600 rounded p-2 placeholder-gray-400"
+        <h1 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          Avalie & Action
+        </h1>
+
+        <p className="max-w-lg text-base text-muted-foreground sm:text-lg">
+          Contribua com sua avaliacao para fortalecer a empresa. Sua resposta e anonima.
+        </p>
+      </section>
+
+      <section className="flex justify-center px-4 pb-12">
+        <div className="w-full max-w-md space-y-4">
+          <Input
+            placeholder="Digite seu CPF"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+          />
+
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={loading}
           >
-            <option value="">Selecione</option>
-            {q.options.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        )}
+            {loading ? "Validando..." : "Responder formulario"}
+          </Button>
+        </div>
+      </section>
 
-        {q.type === "AVALIACAO" && (
-          <Input
-            type="number"
-            min={1}
-            max={q.options?.length || 5}
-            value={answers[q.id] || ""}
-            onChange={(e) => handleChange(q.id, Number(e.target.value))}
-            className="bg-gray-700 text-white border-gray-600 placeholder-gray-400"
-          />
-        )}
+      <FeaturesSection />
 
-        {/* Checkbox e Radio podem ser adicionados aqui */}
-      </div>
-    ))}
-
-    <div className="flex justify-center mt-4">
-      <Button onClick={handleSubmit} className="px-8 py-3">
-        Enviar respostas
-      </Button>
+      <footer className="mt-auto border-t py-6 text-center text-xs text-muted-foreground">
+        <p>Dikma - Plataforma de avaliacao anonima</p>
+      </footer>
     </div>
-  </div>
-</div>
   )
 }

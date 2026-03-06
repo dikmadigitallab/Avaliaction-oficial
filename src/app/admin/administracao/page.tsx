@@ -235,7 +235,7 @@ export default function AdministracaoPage() {
               </TableBody>
             </Table>
             {admins.length === 0 && (
-              <div className="p-12 text-center text-muted-foreground italic">
+              <div className="p-12 text-center text-muted-foreground ">
                 Nenhum administrador cadastrado.
               </div>
             )}
