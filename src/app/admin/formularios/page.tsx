@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +18,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { FormBuilder } from "@/components/form-builder";
+import { Badge } from "@/components/ui/badge";
 import {
   Plus,
   ClipboardList,
@@ -30,76 +31,78 @@ import {
   Mail,
   MessageCircle,
   ExternalLink,
-} from "lucide-react"
-import type { FormTemplate } from "@/lib/types"
-import { toast } from "sonner"
+  Trash2Icon,
+} from "lucide-react";
+import type { FormTemplate } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function FormulariosPage() {
-  const [forms, setForms] = useState<FormTemplate[]>([])
-  const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null)
-  const router = useRouter()
+  const [forms, setForms] = useState<FormTemplate[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null);
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     async function fetchForms() {
       try {
-        const res = await fetch("/api/forms")
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setForms(data)
+        const res = await fetch("/api/forms?userId=1");
+
+        if (!res.ok) throw new Error();
+
+        const data = await res.json();
+        setForms(data);
       } catch {
-        toast.error("Erro ao carregar formularios.")
+        toast.error("Erro ao carregar formularios.");
       }
     }
 
-    fetchForms()
-  }, [])
+    fetchForms();
+  }, []);
 
   const buildFormUrl = (formId: string) => {
-    return `${window.location.origin}/responder/${formId}`
-  }
+    return `${window.location.origin}/responder/${formId}`;
+  };
 
   const handleCopyLink = (formId: string) => {
-    const url = buildFormUrl(formId)
+    const url = buildFormUrl(formId);
     navigator.clipboard
       .writeText(url)
       .then(() => toast.success("Link copiado."))
-      .catch(() => toast.error("Nao foi possivel copiar o link."))
-  }
+      .catch(() => toast.error("Nao foi possivel copiar o link."));
+  };
 
   const handleShareEmail = (formId: string) => {
-    const url = buildFormUrl(formId)
-    const subject = encodeURIComponent("Formulario para resposta")
-    const body = encodeURIComponent(`Acesse o formulario pelo link:\n\n${url}`)
-    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank")
-  }
+    const url = buildFormUrl(formId);
+    const subject = encodeURIComponent("Formulario para resposta");
+    const body = encodeURIComponent(`Acesse o formulario pelo link:\n\n${url}`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+  };
 
   const handleShareWhatsApp = (formId: string) => {
-    const url = buildFormUrl(formId)
-    const text = encodeURIComponent(
-      `Responda o formulario pelo link:\n${url}`
-    )
-    window.open(`https://wa.me/?text=${text}`, "_blank")
-  }
+    const url = buildFormUrl(formId);
+    const text = encodeURIComponent(`Responda o formulario pelo link:\n${url}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return
+  //deletar com id
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
 
     try {
-      const res = await fetch(`/api/forms/${deleteTarget.id}`, {
+      const res = await fetch(`/api/forms?id=${id}`, {
         method: "DELETE",
-      })
+      });
 
-      if (!res.ok) throw new Error()
+      if (!res.ok) throw new Error();
 
-      setForms((prev) =>
-        prev.filter((form) => form.id !== deleteTarget.id)
-      )
-      setDeleteTarget(null)
-      toast.success("Formulario excluido.")
+      setForms((prev) => prev.filter((form) => form.id !== id));
+      setDeleteTarget(null);
+
+      toast.success("Formulario excluido.");
     } catch {
-      toast.error("Erro ao excluir formulario.")
+      toast.error("Erro ao excluir formulario.");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -108,6 +111,17 @@ export default function FormulariosPage() {
         <p className="text-sm text-muted-foreground">
           Gerencie seus formularios de avaliacao.
         </p>
+
+        <div>
+          <button
+            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+            onClick={() => setOpen(true)}
+          >
+            novo form
+          </button>
+
+          {open && <FormBuilder />}
+        </div>
       </div>
 
       {forms.length === 0 ? (
@@ -128,22 +142,24 @@ export default function FormulariosPage() {
             .sort(
               (a, b) =>
                 new Date(b.updatedAt).getTime() -
-                new Date(a.updatedAt).getTime()
+                new Date(a.updatedAt).getTime(),
             )
             .map((form) => {
               const ratingCount = form.questions.filter(
-                (q) => q.type === "avaliacao"
-              ).length
+                (q) => q.type === "avaliacao",
+              ).length;
 
               const textCount = form.questions.filter(
-                (q) => q.type === "texto"
-              ).length
+                (q) => q.type === "texto",
+              ).length;
 
               return (
                 <Card
                   key={form.id}
                   className="group cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 focus-within:ring-2 focus-within:ring-primary"
-                  onClick={ ()=>{router.push(`/admin/formularios/${form.id}`)} }
+                  onClick={() => {
+                    router.push(`/admin/formularios/${form.id}`);
+                  }}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
@@ -183,13 +199,24 @@ export default function FormulariosPage() {
                     </div>
 
                     <div className="flex items-center gap-2 pt-2 border-t">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(form);
+                        }}
+                        className="text-red-600"
+                      >
+                        <Trash2Icon className="h-4 w-4 cursor-pointer" />
+                      </button>
+
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleCopyLink(form.id)
+                          e.stopPropagation();
+                          handleCopyLink(form.id);
                         }}
                         title="Copiar link"
                       >
@@ -201,8 +228,8 @@ export default function FormulariosPage() {
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleShareEmail(form.id)
+                          e.stopPropagation();
+                          handleShareEmail(form.id);
                         }}
                         title="Compartilhar por email"
                       >
@@ -214,8 +241,8 @@ export default function FormulariosPage() {
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          handleShareWhatsApp(form.id)
+                          e.stopPropagation();
+                          handleShareWhatsApp(form.id);
                         }}
                         title="Compartilhar no WhatsApp"
                       >
@@ -224,7 +251,7 @@ export default function FormulariosPage() {
                     </div>
                   </CardContent>
                 </Card>
-              )
+              );
             })}
         </div>
       )}
@@ -245,7 +272,7 @@ export default function FormulariosPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => handleDelete(deleteTarget?.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
@@ -254,5 +281,5 @@ export default function FormulariosPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
