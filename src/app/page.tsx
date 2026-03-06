@@ -22,7 +22,7 @@ export default function HomePage() {
             />
           </div>
 
-          <h1 className="max-w-3xl text-4xl font-black tracking-tight text-foreground sm:text-6xl italic uppercase">
+          <h1 className="max-w-3xl text-4xl font-black tracking-tight text-foreground sm:text-6xl  uppercase">
             Avalie <span className="text-primary">&</span> Action
           </h1>
 
@@ -34,8 +34,8 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-4 sm:flex-row mt-4">
             <a
-              href="/login"
-              className="rounded-xl bg-primary px-8 py-4 text-sm font-black uppercase italic text-black hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              href="/admin/dashboard"
+              className="rounded-xl bg-primary px-8 py-4 text-sm font-black uppercase  text-black hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
             >
               Acessar administração
             </a>
@@ -55,7 +55,7 @@ export default function HomePage() {
           className="border-t border-border/40 px-4 py-20 text-center bg-accent/5"
         >
           <div className="mx-auto max-w-5xl space-y-12">
-            <h2 className="text-3xl font-black uppercase italic sm:text-4xl">
+            <h2 className="text-3xl font-black uppercase sm:text-4xl">
               Como funciona
             </h2>
 
@@ -75,7 +75,7 @@ export default function HomePage() {
                 },
               ].map((item, i) => (
                 <div key={i} className="p-8 rounded-[2rem] bg-card border border-border/50 shadow-sm hover:border-primary/50 transition-colors">
-                  <h3 className="text-xl font-black uppercase italic mb-3 text-primary">
+                  <h3 className="text-xl font-black uppercase  mb-3 text-primary">
                     {item.step}
                   </h3>
                   <p className="text-sm text-muted-foreground font-medium leading-relaxed">
@@ -90,7 +90,7 @@ export default function HomePage() {
         {/* Benefícios */}
         <section className="border-t border-border/40 px-4 py-20 text-center">
           <div className="mx-auto max-w-4xl space-y-8">
-            <h2 className="text-3xl font-black uppercase italic">
+            <h2 className="text-3xl font-black uppercase ">
               Benefícios <span className="text-primary">Premium</span>
             </h2>
 
