@@ -1,300 +1,349 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import React from "react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import {
-  Bar,
+  LineChart,
+  Line,
   BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Area,
-  AreaChart,
+  Tooltip,
   ResponsiveContainer,
 } from "recharts"
 import {
-  BarChart3,
-  Download,
+  User,
   Users,
-  Star,
-  Building2,
+  UserCheck,
+  CheckSquare,
   TrendingUp,
-  TrendingDown,
-  FileText,
+  Download,
 } from "lucide-react"
-import {
-  fetchCompanies,
-  fetchEvaluations,
-  fetchSupervisors,
-  fetchAccessLogs,
-} from "@/lib/api"
-import { exportEvaluationsToExcel, exportEvaluationsToPDF } from "@/lib/excel-export"
-import type { Company, Supervisor, Evaluation, EvaluationRatings } from "@/lib/types"
-import { CRITERIA_LABELS, CRITERIA_KEYS } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
-function getAverage(ratings: EvaluationRatings): number {
-  return CRITERIA_KEYS.reduce((sum, key) => sum + ratings[key], 0) / CRITERIA_KEYS.length
+/* ================= MOCK DATA ================= */
+
+const adminsCount = 0
+const employeesCount = 0
+const supervisorsCount = 1
+const evaluationsCount = 1
+const avgEvaluation = 5.0
+
+const evaluationsByDay = [
+  { day: "Seg", value: 65 },
+  { day: "Ter", value: 78 },
+  { day: "Qua", value: 72 },
+  { day: "Qui", value: 85 },
+  { day: "Sex", value: 92 },
+  { day: "Sab", value: 45 },
+  { day: "Dom", value: 38 },
+]
+
+const scoreDistribution = [
+  { label: "Excelente (5)", value: 35 },
+  { label: "Bom (4)", value: 28 },
+  { label: "Normal (3)", value: 22 },
+  { label: "Ruim (2)", value: 10 },
+  { label: "Péssimo (1)", value: 6 },
+]
+
+const recentEvaluations = [
+  {
+    supervisor: "douglas-dikma",
+    company: "dikma",
+    avgScore: 5.0,
+    date: "04/03/2026",
+    Lideranca: 5,
+    Comunicacao: 5,
+    Respeito: 5,
+    Organizacao: 5,
+    ApoioEquipe: 5,
+    Classificacao: "Ótimo",
+    Comentario: "-",
+  },
+]
+
+/* ================= EXPORTAÇÃO EXCEL PROFISSIONAL ================= */
+
+async function exportToExcel() {
+  const ExcelJS = (await import("exceljs")).default
+
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet("Dashboard")
+
+  const exportDate = new Date()
+  const exportDateFormatted = exportDate.toLocaleDateString("pt-BR")
+  const exportTimeFormatted = exportDate.toLocaleTimeString("pt-BR")
+
+  worksheet.mergeCells("A1:L1")
+  const titleCell = worksheet.getCell("A1")
+  titleCell.value = "Relatório Dashboard de Avaliações"
+  titleCell.font = { bold: true, size: 14 }
+  worksheet.getRow(1).height = 25
+
+  worksheet.mergeCells("A2:L2")
+  const subtitleCell = worksheet.getCell("A2")
+  subtitleCell.value = `Plataforma Dikma | ${exportDateFormatted} às ${exportTimeFormatted}`
+  subtitleCell.font = { size: 10 }
+  worksheet.getRow(2).height = 18
+
+  worksheet.getRow(3).height = 10
+
+  const headers = [
+    "Data",
+    "Empresa",
+    "Supervisor",
+    "Liderança",
+    "Comunicação",
+    "Respeito",
+    "Organização",
+    "Apoio",
+    "Média",
+    "Classificação",
+    "Comentário",
+  ]
+
+  const headerRow = worksheet.getRow(4)
+
+  headers.forEach((header, index) => {
+    const cell = headerRow.getCell(index + 1)
+    cell.value = header
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF10B981" },
+    }
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } }
+    cell.alignment = { horizontal: "center" }
+  })
+
+  worksheet.getRow(4).height = 20
+
+  recentEvaluations.forEach((e, index) => {
+    const row = worksheet.getRow(5 + index)
+
+    const values = [
+      e.date,
+      e.company,
+      e.supervisor,
+      e.Lideranca,
+      e.Comunicacao,
+      e.Respeito,
+      e.Organizacao,
+      e.ApoioEquipe,
+      e.avgScore,
+      e.Classificacao,
+      e.Comentario,
+    ]
+
+    values.forEach((value, i) => {
+      const cell = row.getCell(i + 1)
+      cell.value = value
+      cell.alignment = { horizontal: "center" }
+    })
+  })
+
+  worksheet.columns = [
+    { width: 12 },
+    { width: 16 },
+    { width: 18 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 10 },
+    { width: 16 },
+    { width: 30 },
+  ]
+
+  const footerRow = 6 + recentEvaluations.length
+
+  worksheet.mergeCells(`A${footerRow}:L${footerRow}`)
+  const footerCell = worksheet.getCell(`A${footerRow}`)
+  footerCell.value = `Total de avaliações: ${recentEvaluations.length} | Exportado em ${exportDateFormatted}`
+  footerCell.font = { size: 9 }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  })
+
+  const link = document.createElement("a")
+  const url = URL.createObjectURL(blob)
+
+  link.href = url
+  link.download = `dashboard-avaliacoes-${exportDateFormatted.replace(
+    /\//g,
+    "-"
+  )}.xlsx`
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  URL.revokeObjectURL(url)
 }
 
-export function DashboardContent() {
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [supervisors, setSupervisors] = useState<Supervisor[]>([])
-  const [evaluations, setEvaluations] = useState<Evaluation[]>([])
-  const [totalAccesses, setTotalAccesses] = useState(0)
+/* ================= CARD ================= */
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [c, s, e, logs] = await Promise.all([
-          fetchCompanies(),
-          fetchSupervisors(),
-          fetchEvaluations(),
-          fetchAccessLogs(),
-        ])
-        setCompanies(c)
-        setSupervisors(s)
-        setEvaluations(e)
-        setTotalAccesses(logs.filter((l) => l.action === "login").length)
-      } catch (err) {
-        console.error("Failed to load dashboard data:", err)
-      }
-    }
-    load()
-  }, [])
-
-  const overallAvg = useMemo(() => {
-    if (evaluations.length === 0) return 0
-    return evaluations.reduce((sum, e) => sum + getAverage(e.ratings), 0) / evaluations.length
-  }, [evaluations])
-
-  const avgColor = overallAvg >= 4 ? "text-emerald-600" : overallAvg >= 3 ? "text-amber-600" : "text-red-600"
-  const avgBg = overallAvg >= 4 ? "bg-emerald-50" : overallAvg >= 3 ? "bg-amber-50" : "bg-red-50"
-
-  // Chart 1: Evaluations per company
-  const companyChartData = useMemo(() => {
-    return companies.map((c) => {
-      const evals = evaluations.filter((e) => e.companyId === c.id)
-      const avg = evals.length > 0
-        ? evals.reduce((sum, e) => sum + getAverage(e.ratings), 0) / evals.length
-        : 0
-      return {
-        name: c.name,
-        avaliacoes: evals.length,
-        media: Number(avg.toFixed(2)),
-      }
-    })
-  }, [companies, evaluations])
-
-  // Chart 2: Average per criteria
-  const criteriaChartData = useMemo(() => {
-    if (evaluations.length === 0) return []
-    return CRITERIA_KEYS.map((key) => ({
-      criterio: CRITERIA_LABELS[key],
-      media: Number(
-        (evaluations.reduce((sum, e) => sum + e.ratings[key], 0) / evaluations.length).toFixed(2)
-      ),
-    }))
-  }, [evaluations])
-
-  // Chart 3: Timeline (evaluations over time, grouped by day)
-  const timelineData = useMemo(() => {
-    if (evaluations.length === 0) return []
-    const grouped = new Map<string, number>()
-    evaluations.forEach((e) => {
-      const day = new Date(e.createdAt).toLocaleDateString("pt-BR")
-      grouped.set(day, (grouped.get(day) || 0) + 1)
-    })
-    return Array.from(grouped.entries())
-      .map(([date, count]) => ({ date, avaliacoes: count }))
-      .sort((a, b) => {
-        const [da, ma, ya] = a.date.split("/").map(Number)
-        const [db, mb, yb] = b.date.split("/").map(Number)
-        return new Date(ya, ma - 1, da).getTime() - new Date(yb, mb - 1, db).getTime()
-      })
-  }, [evaluations])
-
-  const handleExport = () => {
-    exportEvaluationsToExcel(evaluations)
-  }
-
-  const chartConfigCompany = {
-    avaliacoes: { label: "Avaliacoes", color: "oklch(0.60 0.13 175)" },
-    media: { label: "Media", color: "oklch(0.55 0.12 250)" },
-  }
-
-  const chartConfigCriteria = {
-    media: { label: "Media", color: "oklch(0.55 0.12 250)" },
-  }
-
-  const chartConfigTimeline = {
-    avaliacoes: { label: "Avaliacoes", color: "oklch(0.60 0.13 175)" },
-  }
-
+function StatCard({
+  icon,
+  label,
+  value,
+  iconColor,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: number | string
+  iconColor: string
+}) {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Visao geral das avaliacoes de supervisores</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleExport} disabled={evaluations.length === 0}>
-            <Download className="h-4 w-4" />
-            Exportar Excel
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() => exportEvaluationsToPDF(evaluations)} disabled={evaluations.length === 0}>
-            <FileText className="h-4 w-4" />
-            Exportar PDF
-          </Button>
-        </div>
+    <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+      <div
+        className={`p-3 rounded-lg ${iconColor} text-white flex items-center justify-center`}
+        style={{ minWidth: 48, minHeight: 48 }}
+      >
+        {icon}
       </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-              <BarChart3 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Avaliacoes</p>
-              <p className="text-xl font-bold text-card-foreground">{evaluations.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-              <FileText className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Acessos</p>
-              <p className="text-xl font-bold text-card-foreground">{totalAccesses}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-              <Building2 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Empresas</p>
-              <p className="text-xl font-bold text-card-foreground">{companies.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-            <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl shrink-0", avgBg)}>
-              <Star className={cn("h-5 w-5", avgColor)} />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Media Geral</p>
-              <p className={cn("text-xl font-bold", avgColor)}>
-                {overallAvg > 0 ? overallAvg.toFixed(1) : "N/A"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <p className="text-sm font-semibold text-gray-600">{label}</p>
+        <p className="text-xl font-bold text-gray-900">{value}</p>
       </div>
-
-      {evaluations.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-            <BarChart3 className="h-12 w-12 text-muted-foreground/30" />
-            <p className="text-lg font-medium text-muted-foreground">Nenhuma avaliacao encontrada</p>
-            <p className="text-sm text-muted-foreground">
-              As avaliacoes aparecerao aqui quando os colaboradores enviarem seus feedbacks.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Charts Row */}
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-            {/* Evaluations by Company */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-card-foreground">Avaliacoes por Empresa</CardTitle>
-                <CardDescription>Quantidade e media por empresa</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfigCompany} className="h-64 w-full">
-                  <BarChart data={companyChartData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="avaliacoes" fill="var(--color-avaliacoes)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            {/* Average by Criteria */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-card-foreground">Media por Criterio</CardTitle>
-                <CardDescription>Desempenho medio em cada dimensao</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfigCriteria} className="h-64 w-full">
-                  <BarChart data={criteriaChartData} layout="vertical" margin={{ left: 20 }}>
-                    <CartesianGrid horizontal={false} />
-                    <YAxis dataKey="criterio" type="category" width={100} tick={{ fontSize: 11 }} />
-                    <XAxis type="number" domain={[0, 5]} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="media" fill="var(--color-media)" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Timeline */}
-          {timelineData.length > 1 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-card-foreground">Evolucao de Avaliacoes</CardTitle>
-                <CardDescription>Quantidade de avaliacoes ao longo do tempo</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={chartConfigTimeline} className="h-56 w-full">
-                  <AreaChart data={timelineData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area
-                      type="monotone"
-                      dataKey="avaliacoes"
-                      fill="var(--color-avaliacoes)"
-                      fillOpacity={0.2}
-                      stroke="var(--color-avaliacoes)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
     </div>
+  )
+}
+
+/* ================= DASHBOARD ================= */
+
+export default function DashboardContent() {
+  return (
+    <main className="bg-[#EFF6F4] min-h-screen p-8 max-w-7xl mx-auto space-y-8 relative dark:bg-[#0B161A]">
+      <button
+        onClick={exportToExcel}
+        className="absolute top-8 right-8 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+      >
+        <Download size={18} />
+        Exportar Excel
+      </button>
+
+      <section>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Painel de Controle
+        </h1>
+        <p className="text-sm text-gray-600 mt-1 dark:text-gay-300">
+          Métricas principais do sistema
+        </p>
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 ">
+        <StatCard
+          icon={<User size={24} />}
+          label="Total de Admins"
+          value={adminsCount}
+          iconColor="bg-blue-500"
+        />
+        <StatCard
+          icon={<Users size={24} />}
+          label="Colaboradores"
+          value={employeesCount}
+          iconColor="bg-purple-500"
+        />
+        <StatCard
+          icon={<UserCheck size={24} />}
+          label="Supervisores"
+          value={supervisorsCount}
+          iconColor="bg-indigo-500"
+        />
+        <StatCard
+          icon={<CheckSquare size={24} />}
+          label="Avaliações"
+          value={evaluationsCount}
+          iconColor="bg-green-500"
+        />
+        <StatCard
+          icon={<TrendingUp size={24} />}
+          label="Avaliação Média"
+          value={avgEvaluation.toFixed(1)}
+          iconColor="bg-yellow-400"
+        />
+      </section>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="font-semibold text-gray-800 mb-4">
+            Avaliações por Dia
+          </h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={evaluationsByDay}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="day" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#3b82f6"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="font-semibold text-gray-800 mb-4">
+            Distribuição de Notas
+          </h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={scoreDistribution}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="label"
+                interval={0}
+                angle={-30}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis domain={[0, 40]} />
+              <Tooltip />
+              <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-lg shadow p-6">
+        <h2 className="font-semibold text-gray-800 mb-4">
+          Avaliações Recentes
+        </h2>
+
+        <div className="overflow-x-auto dark:text-black">
+          <table className="w-full table-auto text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-300">
+                <th className="py-2 px-3 text-gray-600 text-sm">Supervisor</th>
+                <th className="py-2 px-3 text-gray-600 text-sm">Empresa</th>
+                <th className="py-2 px-3 text-gray-600 text-sm">Média</th>
+                <th className="py-2 px-3 text-gray-600 text-sm">Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentEvaluations.map((ev, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-gray-200 hover:bg-gray-50"
+                >
+                  <td className="py-2 px-3">{ev.supervisor}</td>
+                  <td className="py-2 px-3">{ev.company}</td>
+                  <td className="py-2 px-3">{ev.avgScore}</td>
+                  <td className="py-2 px-3">{ev.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   )
 }

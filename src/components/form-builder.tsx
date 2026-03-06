@@ -170,41 +170,34 @@ const handleSubmit = async () => {
   }
 
   try {
-    // 1️⃣ Salvar formulário
-    const formRes = await fetch("/api/forms", {
+    const res = await fetch("/api/forms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: formName.trim() }),
+      body: JSON.stringify({
+        name: formName.trim(),
+        userId: "1", 
+        anonymous: true,
+        questions: questions.map((q, index) => ({
+          pergunta: q.text,
+          type: q.type,
+          required: true,
+          order: index
+        }))
+      }),
     })
 
-    if (!formRes.ok) throw new Error("Erro ao salvar o formulário")
-
-    const formData = await formRes.json()
-    const formId = formData.id
-    if (!formId) throw new Error("ID do formulário não retornado")
-
-    // 2️⃣ Salvar perguntas individualmente
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i]
-      const query = new URLSearchParams({ formId }).toString()
-
-      await fetch(`/api/forms/questions?${query}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: q.text,
-          type: q.type,
-          required: true, // você pode tornar personalizável
-          order: i,
-        }),
-      })
+    if (!res.ok) {
+      throw new Error("Erro ao salvar formulário")
     }
 
-    alert("Formulário e perguntas salvos com sucesso!")
+    await res.json()
+
+    toast.success("Formulário salvo com sucesso")
+
     setFormName("")
     setQuestions([])
   } catch (error: any) {
-    toast.error(error.message || "Erro ao salvar o formulário")
+    toast.error(error.message || "Erro ao salvar formulário")
   }
 }
 
