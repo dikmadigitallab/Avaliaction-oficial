@@ -1,146 +1,268 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { 
-  Download, 
-  FileText, 
-  Table as TableIcon, 
-  FilePieChart, 
-  Calendar, 
-  ArrowLeft,
-  Loader2,
-  CheckCircle2
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState, useMemo } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { SiteHeader } from "@/components/site-header"
-import { Progress } from "@/components/ui/progress"
-
-const EXPORT_FORMATS = [
-  { id: "excel", label: "Microsoft Excel", sub: ".xlsx", icon: TableIcon, color: "text-emerald-500" },
-  { id: "pdf", label: "Documento PDF", sub: ".pdf", icon: FileText, color: "text-red-500" },
-  { id: "csv", label: "Arquivo CSV", sub: ".csv", icon: FilePieChart, color: "text-blue-500" },
+const MOCK_EVALUATIONS = [
+  {
+    id: '1',
+    cpf: '12345678900',
+    supervisor: 'Douglas',
+    company: 'Dikma',
+    date: '2026-03-15',
+    averageRating: 4.5,
+    status: 'Concluída',
+  },
+  {
+    id: '2',
+    cpf: '98765432100',
+    supervisor: 'Maria Santos',
+    company: 'ArcelorMittal',
+    date: '2026-03-14',
+    averageRating: 4.2,
+    status: 'Concluída',
+  },
+  {
+    id: '3',
+    cpf: '55544433322',
+    supervisor: 'João Silva',
+    company: 'Dikma',
+    date: '2026-03-13',
+    averageRating: 4.8,
+    status: 'Concluída',
+  },
 ]
 
-export default function ExportPage() {
-  const [format, setFormat] = useState<string | null>(null)
-  const [isexporting, setIsExporting] = useState(false)
-  const [isDone, setIsDone] = useState(false)
+export default function ExportacaoPage() {
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [supervisorFilter, setSupervisorFilter] = useState('all')
+  const [companyFilter, setCompanyFilter] = useState('all')
+  const [cpfSearch, setCpfSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isExporting, setIsExporting] = useState(false)
 
-  const handleExport = () => {
+  const itemsPerPage = 10
+
+  const supervisors = Array.from(new Set(MOCK_EVALUATIONS.map((e) => e.supervisor)))
+  const companies = Array.from(new Set(MOCK_EVALUATIONS.map((e) => e.company)))
+
+  const filteredEvaluations = useMemo(() => {
+    return MOCK_EVALUATIONS.filter((evaluation) => {
+      const evalDate = new Date(evaluation.date)
+      const start = startDate ? new Date(startDate) : null
+      const end = endDate ? new Date(endDate) : null
+
+      if (start && evalDate < start) return false
+      if (end && evalDate > end) return false
+      if (supervisorFilter !== 'all' && evaluation.supervisor !== supervisorFilter) return false
+      if (companyFilter !== 'all' && evaluation.company !== companyFilter) return false
+      if (cpfSearch && !evaluation.cpf.includes(cpfSearch)) return false
+
+      return true
+    })
+  }, [startDate, endDate, supervisorFilter, companyFilter, cpfSearch])
+
+  const totalPages = Math.ceil(filteredEvaluations.length / itemsPerPage)
+
+  const paginatedEvaluations = filteredEvaluations.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  const totalEvaluations = filteredEvaluations.length
+
+  const averageRating =
+    filteredEvaluations.length > 0
+      ? (
+          filteredEvaluations.reduce((sum, e) => sum + e.averageRating, 0) /
+          filteredEvaluations.length
+        ).toFixed(1)
+      : '0.0'
+
+  const uniqueSupervisors = new Set(filteredEvaluations.map((e) => e.supervisor)).size
+
+  const selectedPeriod =
+    startDate && endDate ? `${startDate} a ${endDate}` : 'Não selecionado'
+
+  const handleClearFilters = () => {
+    setStartDate('')
+    setEndDate('')
+    setSupervisorFilter('all')
+    setCompanyFilter('all')
+    setCpfSearch('')
+    setCurrentPage(1)
+  }
+
+  const exportToExcel = async () => {
     setIsExporting(true)
-    // Simulação de geração de relatório pesado
-    setTimeout(() => {
-      setIsExporting(false)
-      setIsDone(true)
-      // Resetar após 3 segundos
-      setTimeout(() => setIsDone(false), 3000)
-    }, 2500)
+
+    try {
+      const ExcelJS = await import('exceljs')
+
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('Relatório')
+
+      worksheet.columns = [
+        { header: 'CPF', key: 'cpf', width: 15 },
+        { header: 'Supervisor', key: 'supervisor', width: 20 },
+        { header: 'Empresa', key: 'company', width: 20 },
+        { header: 'Data', key: 'date', width: 15 },
+        { header: 'Nota', key: 'rating', width: 10 },
+        { header: 'Status', key: 'status', width: 15 },
+      ]
+
+      filteredEvaluations.forEach((e) => {
+        const row = worksheet.addRow({
+          cpf: e.cpf,
+          supervisor: e.supervisor,
+          company: e.company,
+          date: e.date,
+          rating: e.averageRating,
+          status: e.status,
+        })
+
+        row.eachCell((cell) => {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' }
+        })
+      })
+
+      const buffer = await workbook.xlsx.writeBuffer()
+
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+
+      link.href = url
+      link.download = 'relatorio-avaliacoes.xlsx'
+
+      link.click()
+
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error(error)
+    }
+
+    setIsExporting(false)
   }
 
   return (
-    <div className="min-h-screen bg-[#0C0C0E] text-zinc-100 font-sans">
-      <SiteHeader />
+    <div className="space-y-6 p-6">
 
-      <main className="mx-auto max-w-[800px] px-6 py-12 md:py-16">
-        
-        {/* VOLTAR */}
-        <Button variant="ghost" className="mb-8 text-zinc-500 hover:text-white -ml-4">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar ao Dashboard
-        </Button>
+      <h1 className="text-3xl font-bold">Exportação de Relatórios</h1>
 
-        {/* HEADER */}
-        <div className="mb-12 space-y-2">
-          <h1 className="text-4xl font-black tracking-tight text-white">Exportar Relatórios</h1>
-          <p className="text-zinc-400 text-lg">Selecione o formato e o período para baixar os dados das avaliações.</p>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+        </CardHeader>
 
-        <div className="space-y-8">
-          
-          {/* FORMATO DO ARQUIVO */}
-          <section className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">1. Formato do Arquivo</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {EXPORT_FORMATS.map((f) => {
-                const isSelected = format === f.id
-                return (
-                  <button
-                    key={f.id}
-                    onClick={() => setFormat(f.id)}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300",
-                      isSelected 
-                        ? "bg-zinc-900 border-primary shadow-lg shadow-primary/10" 
-                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
-                    )}
-                  >
-                    <f.icon className={cn("h-8 w-8 mb-3", isSelected ? f.color : "text-zinc-600")} />
-                    <span className={cn("font-bold block", isSelected ? "text-white" : "text-zinc-400")}>{f.label}</span>
-                    <span className="text-[10px] font-black text-zinc-600 uppercase mt-1">{f.sub}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </section>
+        <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
 
-          {/* PERÍODO (MOCKUP DE FILTRO) */}
-          <section className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">2. Período dos Dados</label>
-            <Card className="bg-zinc-900/40 border-zinc-800 p-6 rounded-[2rem] flex flex-col sm:flex-row items-center gap-6">
-              <div className="flex-1 w-full space-y-2">
-                <span className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2">
-                  <Calendar className="h-3 w-3" /> Data Inicial
-                </span>
-                <input type="date" className="w-full bg-zinc-800 border-none rounded-xl h-12 px-4 text-white outline-none focus:ring-2 focus:ring-primary/50" />
-              </div>
-              <div className="flex-1 w-full space-y-2">
-                <span className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2">
-                  <Calendar className="h-3 w-3" /> Data Final
-                </span>
-                <input type="date" className="w-full bg-zinc-800 border-none rounded-xl h-12 px-4 text-white outline-none focus:ring-2 focus:ring-primary/50" />
-              </div>
-            </Card>
-          </section>
+          <Input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} />
 
-          {/* BOTÃO DE AÇÃO */}
-          <div className="pt-8 flex flex-col items-center gap-6">
-            {isexporting && (
-              <div className="w-full max-w-sm space-y-3 animate-in fade-in">
-                <div className="flex justify-between text-[10px] font-black uppercase text-primary tracking-widest">
-                  <span>Gerando Arquivo...</span>
-                  <span>75%</span>
-                </div>
-                <Progress value={75} className="h-1.5 bg-zinc-900" />
-              </div>
-            )}
+          <Input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} />
 
-            <Button 
-              size="lg"
-              disabled={!format || isexporting || isDone}
-              onClick={handleExport}
-              className={cn(
-                "h-20 px-12 rounded-[1.5rem] text-xl font-black uppercase italic tracking-tighter transition-all duration-500 w-full sm:w-auto",
-                isDone ? "bg-emerald-500 hover:bg-emerald-500" : "bg-primary hover:bg-primary/90"
-              )}
-            >
-              {isexporting ? (
-                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-              ) : isDone ? (
-                <CheckCircle2 className="mr-3 h-6 w-6" />
-              ) : (
-                <Download className="mr-3 h-6 w-6 stroke-[3px]" />
-              )}
-              {isexporting ? "Processando" : isDone ? "Concluído" : "Gerar Exportação"}
-            </Button>
+          <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Supervisor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {supervisors.map((s)=>(
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.4em] text-center">
-              Os dados são exportados seguindo as normas de LGPD
-            </p>
-          </div>
-        </div>
-      </main>
+          <Select value={companyFilter} onValueChange={setCompanyFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Empresa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {companies.map((c)=>(
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button onClick={handleClearFilters} variant="outline">
+            Limpar
+          </Button>
+
+        </CardContent>
+      </Card>
+
+      <Button onClick={exportToExcel} disabled={isExporting || filteredEvaluations.length===0}>
+        <Download className="h-4 w-4 mr-2"/>
+        Exportar Excel
+      </Button>
+
+      <Card>
+
+        <CardHeader>
+          <CardTitle>Resultados</CardTitle>
+          <CardDescription>{totalEvaluations} avaliações</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+
+          <Table>
+
+            <TableHeader>
+              <TableRow>
+                <TableHead>CPF</TableHead>
+                <TableHead>Supervisor</TableHead>
+                <TableHead>Empresa</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Nota</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+
+              {paginatedEvaluations.map((e)=>(
+                <TableRow key={e.id}>
+                  <TableCell>{e.cpf}</TableCell>
+                  <TableCell>{e.supervisor}</TableCell>
+                  <TableCell>{e.company}</TableCell>
+                  <TableCell>{e.date}</TableCell>
+                  <TableCell>{e.averageRating}</TableCell>
+                  <TableCell>{e.status}</TableCell>
+                </TableRow>
+              ))}
+
+            </TableBody>
+
+          </Table>
+
+        </CardContent>
+
+      </Card>
+
     </div>
   )
 }
