@@ -29,7 +29,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-4 sm:flex-row">
             <a
-              href="/login"
+              href="/admin/dashboard"
               className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
             >
               Acessar administração
