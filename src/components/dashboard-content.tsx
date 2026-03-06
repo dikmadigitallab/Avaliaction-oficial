@@ -219,7 +219,7 @@ function StatCard({
 
 export default function DashboardContent() {
   return (
-    <main className="bg-gray-50 min-h-screen p-8 max-w-7xl mx-auto space-y-8 relative">
+    <main className="bg-[#EFF6F4] min-h-screen p-8 max-w-7xl mx-auto space-y-8 relative dark:bg-[#0B161A]">
       <button
         onClick={exportToExcel}
         className="absolute top-8 right-8 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
@@ -229,15 +229,15 @@ export default function DashboardContent() {
       </button>
 
       <section>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Painel de Controle
         </h1>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 mt-1 dark:text-gay-300">
           Métricas principais do sistema
         </p>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 ">
         <StatCard
           icon={<User size={24} />}
           label="Total de Admins"
@@ -318,7 +318,7 @@ export default function DashboardContent() {
           Avaliações Recentes
         </h2>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto dark:text-black">
           <table className="w-full table-auto text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-300">

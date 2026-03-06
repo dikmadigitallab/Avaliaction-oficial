@@ -76,7 +76,7 @@ export function exportEvaluationsToExcel(evaluations: Evaluation[]): void {
   .rg { font-weight: 600; color: #ea580c; background: #fff7ed; text-align: center; }
   .wrap { word-wrap: break-word; max-width: 300px; }
   .sep td { height: 6px; border: none; }
-  .foot td { font-size: 8pt; color: #94a3b8; font-style: italic; padding: 12px 10px 4px; border: none; }
+  .foot td { font-size: 8pt; color: #94a3b8; font-style: normal; padding: 12px 10px 4px; border: none; }
   .conf td { font-size: 8pt; color: #cbd5e1; padding: 2px 10px; border: none; }
   .sum-title td { font-size: 14pt; font-weight: bold; color: #0f172a; padding: 14px 10px 4px; border: none; }
   .sum-sub td { font-size: 9pt; color: #64748b; padding: 2px 10px 14px; border: none; }
@@ -252,7 +252,7 @@ export function exportLogsToExcel(logs: AccessLog[]): void {
   .w0 { background: #ffffff; }
   .w1 { background: #f8fafc; }
   .sep td { height: 6px; border: none; }
-  .foot td { font-size: 8pt; color: #94a3b8; font-style: italic; padding: 12px 10px; border: none; }
+  .foot td { font-size: 8pt; color: #94a3b8; font-style: normal; padding: 12px 10px; border: none; }
   .login-badge { color: #0369a1; font-weight: 600; }
   .eval-badge { color: #059669; font-weight: 600; }
   .admin-badge { color: #d97706; font-weight: 600; }
