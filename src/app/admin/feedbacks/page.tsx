@@ -239,7 +239,7 @@ export default function FeedbacksPage() {
                           {e.comment ? (
                             <p className="line-clamp-2">{e.comment}</p>
                           ) : (
-                            <span className="italic text-muted-foreground/50">Sem comentario</span>
+                            <span className=" text-muted-foreground/50">Sem comentario</span>
                           )}
                         </TableCell>
                       </TableRow>

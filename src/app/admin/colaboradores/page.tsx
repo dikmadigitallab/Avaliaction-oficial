@@ -168,7 +168,7 @@ export default function ColaboradoresPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center text-sm font-medium italic text-muted-foreground">
+                    <TableCell className="text-center text-sm font-mediun text-muted-foreground">
                       {colab.supervisorFixo}
                     </TableCell>
                     <TableCell className="text-center">
@@ -260,7 +260,7 @@ export default function ColaboradoresPage() {
                       <p className="text-sm text-foreground/80 leading-relaxed font-medium">
                         "{av.comentario}"
                       </p>
-                      <p className="text-[11px] text-muted-foreground mt-3 italic">
+                      <p className="text-[11px] text-muted-foreground mt-3">
                         Avaliado por: {av.supervisorQueAvaliou}
                       </p>
                     </div>
