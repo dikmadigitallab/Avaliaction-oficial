@@ -87,7 +87,7 @@ export default function RespostasPage() {
             <ClipboardList size={14} />
             Gestão de Feedback
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight dark:text-white italic uppercase">Avaliações Recebidas</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight dark:text-white uppercase">Avaliações Recebidas</h1>
           <div className="h-1.5 w-24 bg-blue-600 mt-4 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
         </header>
 
@@ -101,7 +101,7 @@ export default function RespostasPage() {
         <div className="space-y-6">
           {dados.length === 0 ? (
             <div className="text-center py-24 border-2 border-dashed border-neutral-200 dark:border-white/10 rounded-[2rem]">
-              <p className="text-neutral-400 font-medium italic">Nenhuma resposta disponível.</p>
+              <p className="text-neutral-400 font-medium ">Nenhuma resposta disponível.</p>
             </div>
           ) : (
             dados.map((registro, index) => {
@@ -132,8 +132,8 @@ export default function RespostasPage() {
                             ID {dados.length - index}
                           </span>
                         </div>
-                        <h3 className="font-black text-xl leading-none dark:text-neutral-100 italic uppercase">Colaborador Anonimizado</h3>
-                        <p className="text-xs text-neutral-500 mt-2.5 flex items-center gap-1.5 font-bold italic">
+                        <h3 className="font-black text-xl leading-none dark:text-neutral-100  uppercase">Colaborador Anonimizado</h3>
+                        <p className="text-xs text-neutral-500 mt-2.5 flex items-center gap-1.5 font-bold ">
                           <Calendar size={14} className="text-blue-500" />
                           {new Date(registro.createdAt).toLocaleDateString('pt-BR')}
                         </p>
@@ -152,7 +152,7 @@ export default function RespostasPage() {
                         <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[1.5rem] bg-neutral-50/50 dark:bg-black/40 border border-neutral-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-black/60">
                           <div className="flex-1">
                             <p className="text-[10px] uppercase font-black text-blue-600 dark:text-blue-500 tracking-[0.2em] mb-2">Questão</p>
-                            <p className="text-base font-bold text-neutral-700 dark:text-neutral-200 leading-relaxed italic">
+                            <p className="text-base font-bold text-neutral-700 dark:text-neutral-200 leading-relaxed ">
                               {formatarPergunta(item)}
                             </p>
                           </div>
