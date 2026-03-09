@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner"
 
 
 import "./globals.css"
@@ -41,6 +42,7 @@ export default function RootLayout({
             storageKey="dikma-theme"
           >
             <main>{children}</main>
+            <Toaster />
           </ThemeProvider>
   
       </body>

@@ -48,6 +48,8 @@ model Cpf {
   updatedAt DateTime @updatedAt
 }
 
+
+//subir uma lista de cpfs para validar se o mesmo respondeu ou não
 model Form {
   id        String     @id @default(uuid())
   name      String

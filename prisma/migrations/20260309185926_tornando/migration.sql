@@ -31,6 +31,7 @@ CREATE TABLE "Cpf" (
 
 -- CreateTable
 CREATE TABLE "Form" (
+    "cpf" TEXT NOT NULL,
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "anonymous" BOOLEAN NOT NULL DEFAULT true,
@@ -58,6 +59,7 @@ CREATE TABLE "Question" (
 -- CreateTable
 CREATE TABLE "Resposta" (
     "id" TEXT NOT NULL,
+    "respostas" JSONB NOT NULL,
     "formId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -72,6 +74,9 @@ CREATE UNIQUE INDEX "User_cpf_key" ON "User"("cpf");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cpf_cpf_key" ON "Cpf"("cpf");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Form_cpf_key" ON "Form"("cpf");
 
 -- AddForeignKey
 ALTER TABLE "Cpf" ADD CONSTRAINT "Cpf_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

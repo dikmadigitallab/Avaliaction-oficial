@@ -19,6 +19,8 @@ export async function GET() {
   }
 }
 
+
+
 // CREATE
 export async function POST(req: NextRequest) {
   try {
@@ -31,11 +33,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const supervisor = await prisma.supervisor.create({
-      data: { name, cpf, email, password },
+    const user = await prisma.user.create({
+      data: {
+        nome: name,
+        cpf,
+        email,
+        senha: password
+      }
     })
 
-    return NextResponse.json(supervisor, { status: 201 })
+    return NextResponse.json(user, { status: 201 })
   } catch (error: any) {
     if (error.code === "P2002") {
       return NextResponse.json(
@@ -45,11 +52,12 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Erro ao criar supervisor" },
+      { error: "Erro ao criar usuário" },
       { status: 500 }
     )
   }
 }
+
 
 // UPDATE
 export async function PUT(req: NextRequest) {
@@ -63,7 +71,7 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    const supervisor = await prisma.supervisor.update({
+    const supervisor = await prisma.user.update({
       where: { id },
       data: { name, cpf, email, password },
     })

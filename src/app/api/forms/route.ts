@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    console.log("testes", body)
 
     const { name, userId, anonymous, questions } = body
 

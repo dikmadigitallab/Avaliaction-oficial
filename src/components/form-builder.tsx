@@ -58,7 +58,7 @@ interface FormBuilderProps {
 export function FormBuilder({
   initialName = "",
   initialQuestions = [],
- // onSave,
+  // onSave,
   submitLabel = "Salvar formulario",
 }: FormBuilderProps) {
   const [formName, setFormName] = useState(initialName)
@@ -141,65 +141,62 @@ export function FormBuilder({
   }
 
 
-/* 
-  const handleSubmit = () => {
+  /* 
+    const handleSubmit = () => {
+      if (!formName.trim()) {
+        toast.error("Informe o nome do formulario.")
+        return
+      }
+  
+      if (questions.length === 0) {
+        toast.error("Adicione pelo menos uma pergunta.")
+        return
+      }
+  
+      onSave(formName.trim(), questions)
+    }
+   */
+
+
+
+  const handleSubmit = async () => {
     if (!formName.trim()) {
-      toast.error("Informe o nome do formulario.")
+      toast.error("Informe o nome do formulário.")
       return
     }
-
     if (questions.length === 0) {
       toast.error("Adicione pelo menos uma pergunta.")
       return
     }
-
-    onSave(formName.trim(), questions)
-  }
- */
-
-
-const handleSubmit = async () => {
-  if (!formName.trim()) {
-    toast.error("Informe o nome do formulário.")
-    return
-  }
-
-  if (questions.length === 0) {
-    toast.error("Adicione pelo menos uma pergunta.")
-    return
-  }
-
-  try {
-    const res = await fetch("/api/forms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: formName.trim(),
-        userId: "1", 
-        anonymous: true,
-        questions: questions.map((q, index) => ({
-          pergunta: q.text,
-          type: q.type,
-          required: true,
-          order: index
-        }))
-      }),
-    })
-
-    if (!res.ok) {
-      throw new Error("Erro ao salvar formulário")
+    try {
+      const res = await fetch("/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formName.trim(),
+          userId: "1", //pegar o id do  use
+          anonymous: true,
+          questions: questions.map((q, index) => ({
+            pergunta: q.text,
+            type: q.type,
+            required: true,
+            order: index
+          }))
+        }),
+      })
+      if (!res.ok) {
+        throw new Error("Erro ao salvar formulário")
+      }
+      await res.json()
+      alert("Formulário salvo com sucesso")
+      setFormName("")
+      setQuestions([])
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao salvar formulário")
     }
-
-    await res.json()
-
-    toast.success("Formulário salvo com sucesso")
-
-    setFormName("")
-    setQuestions([])
-  } catch (error: any) {
-    toast.error(error.message || "Erro ao salvar formulário")
   }
-}
+
+
 
 
   const renderTypeBadge = (type: QuestionType) => {
@@ -414,41 +411,41 @@ const handleSubmit = async () => {
 
                   {(newQuestionType === "BOOLEAN" ||
                     newQuestionType === "LIST") && (
-                    <div className="flex flex-col gap-2">
-                      <Label>Opções *</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={newOptionText}
-                          onChange={(e) =>
-                            setNewOptionText(e.target.value)
-                          }
-                          placeholder="Digite uma opção"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleAddOption}
-                        >
-                          Adicionar
-                        </Button>
-                      </div>
-                      <div className="flex gap-2 flex-wrap mt-2">
-                        {newOptions.map((opt, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="gap-1 text-xs cursor-pointer"
-                            onClick={() =>
-                              setNewOptions((prev) =>
-                                prev.filter((_, i) => i !== idx)
-                              )
+                      <div className="flex flex-col gap-2">
+                        <Label>Opções *</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newOptionText}
+                            onChange={(e) =>
+                              setNewOptionText(e.target.value)
                             }
+                            placeholder="Digite uma opção"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={handleAddOption}
                           >
-                            {opt} <Trash2 className="h-3 w-3" />
-                          </Badge>
-                        ))}
+                            Adicionar
+                          </Button>
+                        </div>
+                        <div className="flex gap-2 flex-wrap mt-2">
+                          {newOptions.map((opt, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="gap-1 text-xs cursor-pointer"
+                              onClick={() =>
+                                setNewOptions((prev) =>
+                                  prev.filter((_, i) => i !== idx)
+                                )
+                              }
+                            >
+                              {opt} <Trash2 className="h-3 w-3" />
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   <div className="flex gap-2">
                     <Button
@@ -480,9 +477,9 @@ const handleSubmit = async () => {
         >
           <Save className="h-4 w-4" />
           {submitLabel}
-          
+
           {/* handle aqui */}
-        
+
         </Button>
       </div>
     </div>

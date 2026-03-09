@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 type QuestionType =
   | "TEXT"
@@ -33,7 +34,7 @@ export default function FormResponsePage() {
   const params = useParams()
   const formId = params?.id as string | undefined
   const cpf = params?.cpf as string | undefined
-
+  const router = useRouter()
 
 
   const [form, setForm] = useState<Form | null>(null)
@@ -143,6 +144,8 @@ const handleSubmit = async () => {
 
     toast.success("Respostas enviadas com sucesso!")
     setAnswers({})
+    router.push('/responder/thanks')
+    
   } catch {
     toast.error("Erro ao enviar respostas")
   }

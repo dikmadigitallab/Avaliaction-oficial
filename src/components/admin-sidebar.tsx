@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   { href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
   { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
   { href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
-  { href: "/admin/respostas/70260ca3-faab-41ca-9203-a306f73b5c25", label: "Respostas", icon: Mail, permission: "Respostas" },
+  { href: "/admin/respostas", label: "Respostas", icon: Mail, permission: "Respostas" },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -189,3 +189,5 @@ export function AdminSidebar() {
     </>
   )
 }
+
+//v0/dikmadigitallab-11654fc0
