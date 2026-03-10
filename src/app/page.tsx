@@ -34,7 +34,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-4 sm:flex-row mt-4">
             <a
-              href="/admin/dashboard"
+              href="/login"
 
               className="rounded-xl bg-primary px-8 py-4 text-sm font-black uppercase  text-black hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
 
