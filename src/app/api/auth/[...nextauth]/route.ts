@@ -1,9 +1,10 @@
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
-const handler = NextAuth({
+// Exporta as options separadamente
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -12,28 +13,13 @@ const handler = NextAuth({
         password: { label: "password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          }
-        })
+        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
+        if (!user) return null
 
-        if (!user) {
-          return null
-        }
-
-        const senhaValida = await bcrypt.compare(
-          credentials.password,
-          user.senha
-        )
-
-        if (!senhaValida) {
-          return null
-        }
+        const senhaValida = await bcrypt.compare(credentials.password, user.senha)
+        if (!senhaValida) return null
 
         return {
           id: user.id,
@@ -45,11 +31,7 @@ const handler = NextAuth({
       }
     })
   ],
-
-  session: {
-    strategy: "jwt"
-  },
-
+  session: { strategy: "jwt" },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -59,20 +41,19 @@ const handler = NextAuth({
         token.cpf = user.cpf
         token.userType = user.userType
       }
-
       return token
     },
-
     async session({ session, token }) {
       session.user.id = token.id as string
       session.user.nome = token.nome as string
       session.user.email = token.email as string
       session.user.cpf = token.cpf as string
       session.user.userType = token.userType as string
-
       return session
     }
   }
-})
+}
 
+// Handler do NextAuth
+const handler = NextAuth(authOptions)
 export { handler as GET, handler as POST }

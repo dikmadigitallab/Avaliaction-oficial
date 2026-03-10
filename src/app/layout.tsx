@@ -42,7 +42,9 @@ export default function RootLayout({
             disableTransitionOnChange={false}
             storageKey="dikma-theme"
           >
-            <Providers><main>{children}</main></Providers>
+            <Providers>
+              <main>{children}</main>
+              </Providers>
             <Toaster />
           </ThemeProvider>
   

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
+import { requestAcess } from "@/hooks/requestAcess"
 
 
 
 // GET ALL
 export async function GET() {
+   const session = await requestAcess()
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: "desc" }
@@ -21,7 +24,10 @@ export async function GET() {
 
 
 // CREATE
+
+
 export async function POST(req: NextRequest) {
+  const session = await requestAcess()
   try {
     const { nome, cpf, email, senha, userType } = await req.json()
 
@@ -33,15 +39,17 @@ export async function POST(req: NextRequest) {
     }
 
     const tiposValidos = ["EMPRESA", "GERENTE", "SUPERVISOR", "ADMINISTRATOR", "ADMIN"]
-
     const tipoFinal = tiposValidos.includes(userType) ? userType : "GERENTE"
+
+    // Criptografa a senha antes de salvar
+    const hashSenha = await bcrypt.hash(senha, 10)
 
     const user = await prisma.user.create({
       data: {
         nome,
         cpf,
         email,
-        senha,
+        senha: hashSenha, // usa o hash
         userType: tipoFinal
       }
     })
@@ -64,9 +72,9 @@ export async function POST(req: NextRequest) {
 
 
 
-
 // UPDATE
 export async function PUT(req: NextRequest) {
+   const session = await requestAcess()
   try {
     const { id, nome, cpf, email, senha, userType } = await req.json()
 
@@ -117,6 +125,7 @@ export async function PUT(req: NextRequest) {
 
 // DELETE
 export async function DELETE(req: NextRequest) {
+   const session = await requestAcess()
   try {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
