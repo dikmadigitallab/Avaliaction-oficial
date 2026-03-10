@@ -2,6 +2,7 @@
 
 
 import { useRouter } from "next/navigation"
+import { signOut } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 
@@ -21,7 +22,9 @@ export default function AdminLogoutPage() {
         <div className="flex flex-col gap-4">
         
 
-          <Button variant="outline">
+          <Button variant="outline"
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
             Sair e voltar para login
           </Button>
         </div>
