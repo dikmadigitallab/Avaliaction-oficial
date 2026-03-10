@@ -1,7 +1,7 @@
 "use client"
 
-import { SupervisorManagement } from "@/components/supervisor-management"
+import { UserManagement } from "@/components/supervisor-management"
 
 export default function AdminSupervisoresPage() {
-  return <SupervisorManagement />
+  return <UserManagement />
 }

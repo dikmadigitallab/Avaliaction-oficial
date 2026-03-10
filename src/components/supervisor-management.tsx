@@ -1,11 +1,9 @@
-"use client"
+
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -40,404 +38,413 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Building2,
   UserPlus,
   Search,
 } from "lucide-react"
-import {
-  fetchCompanies,
-  fetchSupervisors,
-  createSupervisor,
-  editSupervisor,
-  removeSupervisor,
-  createCompany,
-} from "@/lib/api"
-import type { Company, Supervisor } from "@/lib/types"
 import { toast } from "sonner"
 
-export function SupervisorManagement() {
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [allSupervisors, setAllSupervisors] = useState<Supervisor[]>([])
-  const [filterCompany, setFilterCompany] = useState<string>("all")
+type UserType =
+  | "EMPRESA"
+  | "GERENTE"
+  | "SUPERVISOR"
+  | "ADMINISTRATOR"
+  | "ADMIN"
+
+interface User {
+  id: string
+  nome: string
+  email: string
+  cpf: string
+  userType: UserType
+}
+
+export function UserManagement() {
+  const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const [filterType, setFilterType] = useState<string>("all")
 
-  // Add supervisor
   const [showAddDialog, setShowAddDialog] = useState(false)
-  const [newName, setNewName] = useState("")
-  const [newCompanyId, setNewCompanyId] = useState("")
-
-  // Edit supervisor
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const [editId, setEditId] = useState("")
-  const [editName, setEditName] = useState("")
-
-  // Delete supervisor
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deleteId, setDeleteId] = useState("")
-  const [deleteName, setDeleteName] = useState("")
 
-  // Add company
-  const [showAddCompanyDialog, setShowAddCompanyDialog] = useState(false)
-  const [newCompanyName, setNewCompanyName] = useState("")
+  const [newNome, setNewNome] = useState("")
+  const [newEmail, setNewEmail] = useState("")
+  const [newCpf, setNewCpf] = useState("")
+  const [newSenha, setNewSenha] = useState("")
+  const [newType, setNewType] = useState<UserType>("GERENTE")
+
+  const [editId, setEditId] = useState("")
+  const [editNome, setEditNome] = useState("")
+
+  const [deleteId, setDeleteId] = useState("")
+  const [deleteNome, setDeleteNome] = useState("")
+
+
+  const [editEmail, setEditEmail] = useState("")
+const [editCpf, setEditCpf] = useState("")
+const [editType, setEditType] = useState<UserType>("GERENTE")
 
   const refreshData = async () => {
-    try {
-      const [c, s] = await Promise.all([fetchCompanies(), fetchSupervisors()])
-      setCompanies(c)
-      setAllSupervisors(s)
-    } catch (err) {
-      console.error("Failed to load data:", err)
-    }
+    const res = await fetch("/api/create-user")
+    const data = await res.json()
+    setUsers(data)
   }
 
   useEffect(() => {
     refreshData()
   }, [])
 
-  const filtered = allSupervisors
-    .filter((s) => (filterCompany === "all" ? true : s.companyId === filterCompany))
-    .filter((s) =>
+  const filtered = users
+    .filter((u) =>
+      filterType === "all" ? true : u.userType === filterType
+    )
+    .filter((u) =>
       searchTerm
-        ? s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        ? u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          u.email.toLowerCase().includes(searchTerm.toLowerCase())
         : true
     )
 
-  const getCompanyName = (companyId: string) => {
-    return companies.find((c) => c.id === companyId)?.name || "N/A"
-  }
-
   const handleAdd = async () => {
-    if (!newName.trim()) {
-      toast.error("Insira o nome do supervisor.")
+    if (!newNome || !newEmail || !newCpf || !newSenha) {
+      toast.error("Preencha todos os campos.")
       return
     }
-    if (!newCompanyId) {
-      toast.error("Selecione a empresa.")
-      return
-    }
+
     try {
-      await createSupervisor(newName.trim(), newCompanyId)
-      toast.success("Supervisor adicionado com sucesso!")
+      const res = await fetch("/api/create-user", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: newNome,
+          email: newEmail,
+          cpf: newCpf,
+          senha: newSenha,
+          userType: newType,
+        }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      toast.success("Usuário criado")
       setShowAddDialog(false)
-      setNewName("")
-      setNewCompanyId("")
+      setNewNome("")
+      setNewEmail("")
+      setNewCpf("")
+      setNewSenha("")
       refreshData()
     } catch {
-      toast.error("Erro ao adicionar supervisor.")
+      toast.error("Erro ao criar usuário")
     }
   }
 
-  const handleEdit = async () => {
-    if (!editName.trim()) {
-      toast.error("Insira o nome do supervisor.")
+const handleEdit = async (id: string) => {
+  try {
+    await fetch("/api/create-user", {
+      method: "PUT",
+      body: JSON.stringify({
+        id,
+        nome: editNome,
+        email: editEmail,
+        cpf: editCpf,
+        userType: editType
+      })
+    })
+
+    toast.success("Usuário atualizado")
+    setEditId("")
+    refreshData()
+  } catch {
+    toast.error("Erro ao atualizar")
+  }
+}
+
+const handleDelete = async () => {
+  const confirm = window.confirm(
+    `Remover ${deleteNome}? Todos os dados relacionados também serão apagados.`
+  )
+
+  if (!confirm) return
+
+  try {
+    const res = await fetch(`/api/create-user?id=${deleteId}`, {
+      method: "DELETE"
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      toast.error(data.error || "Erro ao remover")
       return
     }
-    try {
-      await editSupervisor(editId, editName.trim())
-      toast.success("Supervisor atualizado!")
-      setShowEditDialog(false)
-      refreshData()
-    } catch {
-      toast.error("Erro ao atualizar supervisor.")
-    }
-  }
 
-  const handleDelete = async () => {
-    try {
-      await removeSupervisor(deleteId)
-      toast.success("Supervisor removido.")
-      setShowDeleteDialog(false)
-      refreshData()
-    } catch {
-      toast.error("Erro ao remover supervisor.")
-    }
+    toast.success("Usuário removido")
+    setShowDeleteDialog(false)
+    refreshData()
+  } catch {
+    toast.error("Erro ao remover")
   }
-
-  const handleAddCompany = async () => {
-    if (!newCompanyName.trim()) {
-      toast.error("Insira o nome da empresa.")
-      return
-    }
-    try {
-      await createCompany(newCompanyName.trim())
-      toast.success("Empresa adicionada!")
-      setShowAddCompanyDialog(false)
-      setNewCompanyName("")
-      refreshData()
-    } catch {
-      toast.error("Erro ao adicionar empresa.")
-    }
-  }
+}
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-8">
-      {/* Header */}
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">Supervisores</h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            Gerencie supervisores e empresas
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowAddCompanyDialog(true)}
-          >
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Nova Empresa</span>
-          </Button>
-          <Button className="gap-2" onClick={() => setShowAddDialog(true)}>
-            <UserPlus className="h-4 w-4" />
-            <span className="hidden sm:inline">Novo Supervisor</span>
-          </Button>
-        </div>
+ <div className="mx-auto max-w-6xl px-3 py-6">
+  <div className="mb-6 flex items-center justify-between">
+    <div>
+      <h1 className="text-2xl font-bold">Usuários</h1>
+      <p className="text-sm text-muted-foreground">
+        Gerenciamento de usuários da plataforma
+      </p>
+    </div>
+
+    <Button className="gap-2" onClick={() => setShowAddDialog(true)}>
+      <UserPlus className="h-4 w-4" />
+      Novo Usuário
+    </Button>
+  </div>
+
+  <Card className="mb-6">
+    <CardContent className="flex gap-3 p-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar usuário"
+          className="pl-9"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar supervisor..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={filterCompany} onValueChange={setFilterCompany}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filtrar empresa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as empresas</SelectItem>
-              {companies.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  <div className="flex items-center gap-2">
-                    {c.logo ? (
-                      <Image
-                        src={c.logo}
-                        alt={c.name}
-                        width={80}
-                        height={30}
-                        className="h-5 w-auto"
-                      />
-                    ) : (
-                      <span>{c.name}</span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      <Select value={filterType} onValueChange={setFilterType}>
+        <SelectTrigger className="w-56">
+          <SelectValue placeholder="Tipo de usuário" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="EMPRESA">Empresa</SelectItem>
+          <SelectItem value="GERENTE">Gerente</SelectItem>
+          <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+          <SelectItem value="ADMINISTRATOR">Administrator</SelectItem>
+          <SelectItem value="ADMIN">Admin</SelectItem>
+        </SelectContent>
+      </Select>
+    </CardContent>
+  </Card>
 
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-card-foreground">
-            <Users className="h-5 w-5 text-primary" />
-            Lista de Supervisores
-            <Badge variant="secondary" className="ml-2">
-              {filtered.length}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filtered.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead className="text-right">Acoes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((sup) => (
-                    <TableRow key={sup.id}>
-                      <TableCell className="font-medium">{sup.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getCompanyName(sup.companyId)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setEditId(sup.id)
-                              setEditName(sup.name)
-                              setShowEditDialog(true)
-                            }}
-                            aria-label={`Editar ${sup.name}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setDeleteId(sup.id)
-                              setDeleteName(sup.name)
-                              setShowDeleteDialog(true)
-                            }}
-                            aria-label={`Remover ${sup.name}`}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3 py-12 text-center">
-              <Users className="h-10 w-10 text-muted-foreground/30" />
-              <p className="text-muted-foreground">Nenhum supervisor encontrado.</p>
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowAddDialog(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Adicionar supervisor
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Users className="h-5 w-5" />
+        Lista de Usuários
+        <Badge variant="secondary">{filtered.length}</Badge>
+      </CardTitle>
+    </CardHeader>
 
-      {/* Add Supervisor Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Novo Supervisor</DialogTitle>
-            <DialogDescription>
-              Adicione um novo supervisor a uma empresa.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <Input
-              placeholder="Nome do supervisor"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              autoFocus
-            />
-          <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar empresa" />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    <div className="flex items-center gap-2">
-                      {c.logo ? (
-                        <Image
-                          src={c.logo}
-                          alt={c.name}
-                          width={80}
-                          height={30}
-                          className="h-5 w-auto"
-                        />
-                      ) : (
-                        <span>{c.name}</span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAdd}>Adicionar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    <CardContent>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>CPF</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
 
-      {/* Edit Supervisor Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Editar Supervisor</DialogTitle>
-            <DialogDescription>
-              Atualize o nome do supervisor.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            placeholder="Nome do supervisor"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            autoFocus
-          />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEdit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <TableBody>
+          {filtered.map((u) => (
+            <TableRow key={u.id}>
+              <TableCell>
+                {editId === u.id ? (
+                  <Input
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    className="h-8"
+                  />
+                ) : (
+                  u.nome
+                )}
+              </TableCell>
 
-      {/* Delete Supervisor Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Remover Supervisor</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja remover o supervisor{" "}
-              <strong>{deleteName}</strong>? Esta acao nao pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Remover
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <TableCell>
+                {editId === u.id ? (
+                  <Input
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="h-8"
+                  />
+                ) : (
+                  u.email
+                )}
+              </TableCell>
 
-      {/* Add Company Dialog */}
-      <Dialog open={showAddCompanyDialog} onOpenChange={setShowAddCompanyDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Nova Empresa</DialogTitle>
-            <DialogDescription>
-              Adicione uma nova empresa a plataforma.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            placeholder="Nome da empresa"
-            value={newCompanyName}
-            onChange={(e) => setNewCompanyName(e.target.value)}
-            autoFocus
-          />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowAddCompanyDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleAddCompany}>Adicionar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+              <TableCell>
+                {editId === u.id ? (
+                  <Input
+                    value={editCpf}
+                    onChange={(e) => setEditCpf(e.target.value)}
+                    className="h-8"
+                  />
+                ) : (
+                  u.cpf
+                )}
+              </TableCell>
+
+              <TableCell>
+                {editId === u.id ? (
+                  <Select
+                    value={editType}
+                    onValueChange={(v) => setEditType(v as UserType)}
+                  >
+                    <SelectTrigger className="h-8 w-[150px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EMPRESA">Empresa</SelectItem>
+                      <SelectItem value="GERENTE">Gerente</SelectItem>
+                      <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+                      <SelectItem value="ADMINISTRATOR">Administrator</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="outline">{u.userType}</Badge>
+                )}
+              </TableCell>
+
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  {editId === u.id ? (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleEdit(u.id)}
+                      >
+                        Salvar
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditId("")}
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditId(u.id)
+                          setEditNome(u.nome)
+                          setEditEmail(u.email)
+                          setEditCpf(u.cpf)
+                          setEditType(u.userType)
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          setDeleteId(u.id)
+                          setDeleteNome(u.nome)
+                          setShowDeleteDialog(true)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </CardContent>
+  </Card>
+
+  <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Novo Usuário</DialogTitle>
+        <DialogDescription>
+          Criar novo usuário na plataforma
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-3">
+        <Input
+          placeholder="Nome"
+          value={newNome}
+          onChange={(e) => setNewNome(e.target.value)}
+        />
+
+        <Input
+          placeholder="Email"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+        />
+
+        <Input
+          placeholder="CPF"
+          value={newCpf}
+          onChange={(e) => setNewCpf(e.target.value)}
+        />
+
+        <Input
+          placeholder="Senha"
+          type="password"
+          value={newSenha}
+          onChange={(e) => setNewSenha(e.target.value)}
+        />
+
+        <Select value={newType} onValueChange={(v) => setNewType(v as UserType)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de usuário" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="EMPRESA">Empresa</SelectItem>
+            <SelectItem value="GERENTE">Gerente</SelectItem>
+            <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+            <SelectItem value="ADMINISTRATOR">Administrator</SelectItem>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+          Cancelar
+        </Button>
+        <Button onClick={handleAdd}>Criar</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Remover Usuário</DialogTitle>
+        <DialogDescription>
+          Remover <strong>{deleteNome}</strong>?
+        </DialogDescription>
+      </DialogHeader>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+          Cancelar
+        </Button>
+        <Button variant="destructive" onClick={handleDelete}>
+          Remover
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+</div>
   )
 }
