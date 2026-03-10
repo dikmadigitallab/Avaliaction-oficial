@@ -6,39 +6,43 @@ import { prisma } from "@/lib/prisma"
 // GET ALL
 export async function GET() {
   try {
-    const supervisors = await prisma.supervisor.findMany({
-      orderBy: { createdAt: "desc" },
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" }
     })
 
-    return NextResponse.json(supervisors)
+    return NextResponse.json(users)
   } catch {
     return NextResponse.json(
-      { error: "Erro ao buscar supervisores" },
+      { error: "Erro ao buscar usuários" },
       { status: 500 }
     )
   }
 }
 
 
-
 // CREATE
 export async function POST(req: NextRequest) {
   try {
-    const { name, cpf, email, password } = await req.json()
+    const { nome, cpf, email, senha, userType } = await req.json()
 
-    if (!name || !cpf || !email || !password) {
+    if (!nome || !cpf || !email || !senha) {
       return NextResponse.json(
         { error: "Campos obrigatórios não informados" },
         { status: 400 }
       )
     }
 
+    const tiposValidos = ["EMPRESA", "GERENTE", "SUPERVISOR", "ADMINISTRATOR", "ADMIN"]
+
+    const tipoFinal = tiposValidos.includes(userType) ? userType : "GERENTE"
+
     const user = await prisma.user.create({
       data: {
-        nome: name,
+        nome,
         cpf,
         email,
-        senha: password
+        senha,
+        userType: tipoFinal
       }
     })
 
@@ -59,10 +63,12 @@ export async function POST(req: NextRequest) {
 }
 
 
+
+
 // UPDATE
 export async function PUT(req: NextRequest) {
   try {
-    const { id, name, cpf, email, password } = await req.json()
+    const { id, nome, cpf, email, senha, userType } = await req.json()
 
     if (!id) {
       return NextResponse.json(
@@ -71,16 +77,24 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    const supervisor = await prisma.user.update({
+    const data: any = {}
+
+    if (nome !== undefined) data.nome = nome
+    if (cpf !== undefined) data.cpf = cpf
+    if (email !== undefined) data.email = email
+    if (senha !== undefined) data.senha = senha
+    if (userType !== undefined) data.userType = userType
+
+    const user = await prisma.user.update({
       where: { id },
-      data: { name, cpf, email, password },
+      data
     })
 
-    return NextResponse.json(supervisor)
+    return NextResponse.json(user)
   } catch (error: any) {
     if (error.code === "P2025") {
       return NextResponse.json(
-        { error: "Supervisor não encontrado" },
+        { error: "Usuário não encontrado" },
         { status: 404 }
       )
     }
@@ -93,11 +107,13 @@ export async function PUT(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Erro ao atualizar supervisor" },
+      { error: "Erro ao atualizar usuário" },
       { status: 500 }
     )
   }
 }
+
+
 
 // DELETE
 export async function DELETE(req: NextRequest) {
@@ -112,24 +128,49 @@ export async function DELETE(req: NextRequest) {
       )
     }
 
-    await prisma.supervisor.delete({
-      where: { id },
+    const forms = await prisma.form.findMany({
+      where: { userId: id },
+      select: { id: true }
     })
 
-    return NextResponse.json({ message: "Supervisor removido com sucesso" })
+    const formIds = forms.map(f => f.id)
+
+    await prisma.$transaction([
+      prisma.question.deleteMany({
+        where: { formId: { in: formIds } }
+      }),
+
+      prisma.resposta.deleteMany({
+        where: { formId: { in: formIds } }
+      }),
+
+      prisma.form.deleteMany({
+        where: { id: { in: formIds } }
+      }),
+
+      prisma.cpf.deleteMany({
+        where: { userId: id }
+      }),
+
+      prisma.user.delete({
+        where: { id }
+      })
+    ])
+
+    return NextResponse.json({ message: "Usuário removido com sucesso" })
   } catch (error: any) {
     if (error.code === "P2025") {
       return NextResponse.json(
-        { error: "Supervisor não encontrado" },
+        { error: "Usuário não encontrado" },
         { status: 404 }
       )
     }
 
     return NextResponse.json(
-      { error: "Erro ao remover supervisor" },
+      { error: "Erro ao remover usuário" },
       { status: 500 }
     )
   }
 }
-
 /* testandoapp */
+
