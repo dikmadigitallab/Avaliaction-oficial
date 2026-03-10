@@ -90,6 +90,8 @@ export function FormBuilder({
     setNewOptionText("")
   }
 
+
+/*   
   const handleAddQuestion = () => {
     if (!newQuestionText.trim()) {
       toast.error("Informe o texto da pergunta.")
@@ -133,6 +135,73 @@ export function FormBuilder({
     resetNewQuestion()
     toast.success("Pergunta adicionada.")
   }
+
+ */
+
+
+  const handleAddQuestion = () => {
+    if (!newQuestionText.trim()) {
+      toast.error("Informe o texto da pergunta.")
+      return
+    }
+  
+    if (!newQuestionType) {
+      toast.error("Selecione o tipo da pergunta.")
+      return
+    }
+  
+    if (newQuestionType === "AVALIACAO") {
+      if (!newMaxScore || Number(newMaxScore) < 1) {
+        toast.error("Informe uma nota máxima válida.")
+        return
+      }
+    }
+  
+    if (
+      newQuestionType === "BOOLEAN" ||
+      newQuestionType === "CHECKBOX" ||
+      newQuestionType === "RADIO" ||
+      newQuestionType === "LIST"
+    ) {
+      if (!newOptions || newOptions.length === 0) {
+        toast.error("Informe as opções de resposta.")
+        return
+      }
+    }
+  
+    const question: FormQuestion = {
+      id: crypto.randomUUID(),
+      text: newQuestionText.trim(),
+      type: newQuestionType,
+    }
+  
+    if (newQuestionType === "AVALIACAO") {
+      question.maxScore = Number(newMaxScore)
+    }
+  
+    if (newQuestionType === "BOOLEAN") {
+      question.options = newOptions
+    }
+  
+    if (newQuestionType === "CHECKBOX") {
+      question.options = newOptions
+    }
+  
+    if (newQuestionType === "RADIO") {
+      question.options = newOptions
+    }
+  
+    if (newQuestionType === "LIST") {
+      question.options = newOptions
+    }
+  
+    setQuestions((prev) => [...prev, question])
+    resetNewQuestion()
+    toast.success("Pergunta adicionada.")
+  }
+
+
+
 
   const handleRemoveQuestion = (id: string) => {
     setQuestions((prev) =>
@@ -247,241 +316,250 @@ export function FormBuilder({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Informacoes do formulario
-          </CardTitle>
-          <CardDescription>
-            Defina o nome do formulario.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2">
-            <Label>Nome do formulario *</Label>
-            <Input
-              value={formName}
-              onChange={(e) =>
-                setFormName(e.target.value)
-              }
-            />
+<div className="flex flex-col gap-6">
+  <Card>
+    <CardHeader>
+      <CardTitle>Informacoes do formulario</CardTitle>
+      <CardDescription>
+        Defina o nome do formulario.
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="flex flex-col gap-2">
+        <Label>Nome do formulario *</Label>
+        <Input
+          value={formName}
+          onChange={(e) => setFormName(e.target.value)}
+        />
+      </div>
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardHeader>
+      <div className="flex items-center justify-between">
+        <CardTitle>Perguntas</CardTitle>
+
+        {!isAddingQuestion && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAddingQuestion(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar pergunta
+          </Button>
+        )}
+      </div>
+    </CardHeader>
+
+    <CardContent className="flex flex-col gap-4">
+
+      {questions.map((q, idx) => (
+        <div
+          key={q.id}
+          className="flex items-start gap-3 rounded-lg border p-4"
+        >
+          <div className="font-semibold">
+            {idx + 1}
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Perguntas</CardTitle>
-            {!isAddingQuestion && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setIsAddingQuestion(true)
-                }
-              >
-                <Plus className="h-4 w-4" />
-                Adicionar pergunta
-              </Button>
-            )}
-          </div>
-        </CardHeader>
+          <div className="flex-1">
+            <p className="text-sm font-medium">
+              {q.text}
+            </p>
 
-        <CardContent className="flex flex-col gap-4">
-          {questions.map((q, idx) => (
-            <div
-              key={q.id}
-              className="flex items-start gap-3 rounded-lg border p-4"
-            >
-              <div className="font-semibold">
-                {idx + 1}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">
-                  {q.text}
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  {renderTypeBadge(q.type)}
-                  {q.type === "AVALIACAO" &&
-                    q.maxScore && (
-                      <Badge
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        Nota max: {q.maxScore}
-                      </Badge>
-                    )}
-                  {(q.type === "BOOLEAN" || q.type === "LIST") &&
-                    q.options &&
-                    q.options.map((opt, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {opt}
-                      </Badge>
-                    ))}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  handleRemoveQuestion(q.id)
-                }
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              {renderTypeBadge(q.type)}
 
-          {isAddingQuestion && (
-            <>
-              {questions.length > 0 && (
-                <Separator />
+              {q.type === "AVALIACAO" && q.maxScore && (
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                >
+                  Nota max: {q.maxScore}
+                </Badge>
               )}
-              <div className="border-dashed border p-4 rounded-lg">
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <Label>Texto *</Label>
-                    <Input
-                      value={newQuestionText}
-                      onChange={(e) =>
-                        setNewQuestionText(
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
 
-                  <div>
-                    <Label>Tipo *</Label>
-                    <Select
-                      value={newQuestionType}
-                      onValueChange={(v) =>
-                        setNewQuestionType(
-                          v as QuestionType
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TEXT">
-                          Texto
-                        </SelectItem>
-                        <SelectItem value="AVALIACAO">
-                          Avaliacao
-                        </SelectItem>
-                        <SelectItem value="BOOLEAN">
-                          Booleano
-                        </SelectItem>
-                        <SelectItem value="CHECKBOX">
-                          Checkbox
-                        </SelectItem>
-                        <SelectItem value="RADIO">
-                          Radio
-                        </SelectItem>
-                        <SelectItem value="LIST">
-                          Lista
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {(q.type === "BOOLEAN" ||
+                q.type === "CHECKBOX" ||
+                q.type === "RADIO" ||
+                q.type === "LIST") &&
+                q.options?.map((opt, i) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    {opt}
+                  </Badge>
+                ))}
+            </div>
+          </div>
 
-                  {newQuestionType === "AVALIACAO" && (
-                    <div>
-                      <Label>Nota maxima *</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={newMaxScore}
-                        onChange={(e) =>
-                          setNewMaxScore(
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                  )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleRemoveQuestion(q.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
 
-                  {(newQuestionType === "BOOLEAN" ||
-                    newQuestionType === "LIST") && (
-                      <div className="flex flex-col gap-2">
-                        <Label>Opções *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={newOptionText}
-                            onChange={(e) =>
-                              setNewOptionText(e.target.value)
-                            }
-                            placeholder="Digite uma opção"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={handleAddOption}
-                          >
-                            Adicionar
-                          </Button>
-                        </div>
-                        <div className="flex gap-2 flex-wrap mt-2">
-                          {newOptions.map((opt, idx) => (
-                            <Badge
-                              key={idx}
-                              variant="secondary"
-                              className="gap-1 text-xs cursor-pointer"
-                              onClick={() =>
-                                setNewOptions((prev) =>
-                                  prev.filter((_, i) => i !== idx)
-                                )
-                              }
-                            >
-                              {opt} <Trash2 className="h-3 w-3" />
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+      {isAddingQuestion && (
+        <>
+          {questions.length > 0 && <Separator />}
+
+          <div className="border-dashed border p-4 rounded-lg">
+            <div className="flex flex-col gap-4">
+
+              <div>
+                <Label>Texto *</Label>
+                <Input
+                  value={newQuestionText}
+                  onChange={(e) =>
+                    setNewQuestionText(e.target.value)
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Tipo *</Label>
+
+                <Select
+                  value={newQuestionType}
+                  onValueChange={(v) =>
+                    setNewQuestionType(v as QuestionType)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="TEXT">
+                      Texto
+                    </SelectItem>
+
+                    <SelectItem value="AVALIACAO">
+                      Avaliacao
+                    </SelectItem>
+
+                    <SelectItem value="BOOLEAN">
+                      Booleano
+                    </SelectItem>
+
+                    <SelectItem value="CHECKBOX">
+                      Checkbox
+                    </SelectItem>
+
+                    <SelectItem value="RADIO">
+                      Radio
+                    </SelectItem>
+
+                    <SelectItem value="LIST">
+                      Lista
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {newQuestionType === "AVALIACAO" && (
+                <div>
+                  <Label>Nota maxima *</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={newMaxScore}
+                    onChange={(e) =>
+                      setNewMaxScore(e.target.value)
+                    }
+                  />
+                </div>
+              )}
+
+              {(newQuestionType === "BOOLEAN" ||
+                newQuestionType === "CHECKBOX" ||
+                newQuestionType === "RADIO" ||
+                newQuestionType === "LIST") && (
+                <div className="flex flex-col gap-2">
+
+                  <Label>Opcoes *</Label>
 
                   <div className="flex gap-2">
+                    <Input
+                      value={newOptionText}
+                      onChange={(e) =>
+                        setNewOptionText(e.target.value)
+                      }
+                      placeholder="Digite uma opcao"
+                    />
+
                     <Button
                       size="sm"
-                      onClick={handleAddQuestion}
+                      type="button"
+                      onClick={handleAddOption}
                     >
                       Adicionar
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={resetNewQuestion}
-                    >
-                      Cancelar
-                    </Button>
                   </div>
+
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {newOptions.map((opt, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="gap-1 text-xs cursor-pointer"
+                        onClick={() =>
+                          setNewOptions((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          )
+                        }
+                      >
+                        {opt}
+                        <Trash2 className="h-3 w-3" />
+                      </Badge>
+                    ))}
+                  </div>
+
                 </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleAddQuestion}
+                >
+                  Adicionar
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetNewQuestion}
+                >
+                  Cancelar
+                </Button>
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
 
-      <div className="flex justify-end">
-        <Button
-          size="lg"
-          className="gap-2"
-          onClick={handleSubmit}
-        >
-          <Save className="h-4 w-4" />
-          {submitLabel}
+            </div>
+          </div>
+        </>
+      )}
+    </CardContent>
+  </Card>
 
-          {/* handle aqui */}
-
-        </Button>
-      </div>
-    </div>
+  <div className="flex justify-end">
+    <Button
+      size="lg"
+      className="gap-2"
+      onClick={handleSubmit}
+    >
+      <Save className="h-4 w-4" />
+      {submitLabel}
+    </Button>
+  </div>
+</div>
   )
 }
