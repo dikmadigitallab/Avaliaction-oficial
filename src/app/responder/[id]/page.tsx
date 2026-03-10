@@ -17,6 +17,9 @@ export default function HomePage() {
   const [cpf, setCpf] = useState("")
   const [loading, setLoading] = useState(false)
 
+
+
+/* 
   const handleSubmit = async () => {
     if (!cpf.trim()) {
       toast.error("Informe o CPF.")
@@ -51,6 +54,54 @@ export default function HomePage() {
       setLoading(false)
     }
   }
+
+ */
+const handleSubmit = async () => {
+  if (!cpf.trim()) {
+    toast.error("Informe o CPF.")
+    return
+  }
+
+  if (!formId) {
+    toast.error("Formulario invalido.")
+    return
+  }
+
+  try {
+    setLoading(true)
+
+    const res = await fetch(
+      `/api/authForm?cpf=${encodeURIComponent(cpf)}&formId=${encodeURIComponent(formId)}`
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      toast.error(data.error || "Nao autorizado.")
+      return
+    }
+
+    await fetch("/api/authForm", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cpf,
+        formId,
+      }),
+    })
+
+    router.push(data.link)
+  } catch {
+    toast.error("Erro ao validar CPF.")
+  } finally {
+    setLoading(false)
+  }
+}
+
+
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

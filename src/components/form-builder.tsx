@@ -91,52 +91,6 @@ export function FormBuilder({
   }
 
 
-/*   
-  const handleAddQuestion = () => {
-    if (!newQuestionText.trim()) {
-      toast.error("Informe o texto da pergunta.")
-      return
-    }
-
-    if (!newQuestionType) {
-      toast.error("Selecione o tipo da pergunta.")
-      return
-    }
-
-    if (
-      newQuestionType === "AVALIACAO" &&
-      (!newMaxScore || Number(newMaxScore) < 1)
-    ) {
-      toast.error("Informe uma nota maxima valida.")
-      return
-    }
-
-    if (
-      (newQuestionType === "BOOLEAN" || newQuestionType === "LIST") &&
-      newOptions.length < 1
-    ) {
-      toast.error("Adicione pelo menos uma opção.")
-      return
-    }
-
-    const question: FormQuestion = {
-      id: crypto.randomUUID(),
-      text: newQuestionText.trim(),
-      type: newQuestionType,
-      ...(newQuestionType === "AVALIACAO"
-        ? { maxScore: Number(newMaxScore) }
-        : {}),
-      ...(newQuestionType === "BOOLEAN" || newQuestionType === "LIST"
-        ? { options: newOptions }
-        : {}),
-    }
-
-    setQuestions((prev) => [...prev, question])
-    resetNewQuestion()
-    toast.success("Pergunta adicionada.")
-  }
-
- */
 
 
   const handleAddQuestion = () => {
@@ -210,24 +164,8 @@ export function FormBuilder({
   }
 
 
-  /* 
-    const handleSubmit = () => {
-      if (!formName.trim()) {
-        toast.error("Informe o nome do formulario.")
-        return
-      }
-  
-      if (questions.length === 0) {
-        toast.error("Adicione pelo menos uma pergunta.")
-        return
-      }
-  
-      onSave(formName.trim(), questions)
-    }
-   */
 
-
-
+/* 
   const handleSubmit = async () => {
     if (!formName.trim()) {
       toast.error("Informe o nome do formulário.")
@@ -265,7 +203,51 @@ export function FormBuilder({
     }
   }
 
+ */
 
+
+  const handleSubmit = async () => {
+  if (!formName.trim()) {
+    toast.error("Informe o nome do formulário.")
+    return
+  }
+
+  if (questions.length === 0) {
+    toast.error("Adicione pelo menos uma pergunta.")
+    return
+  }
+
+  try {
+    const res = await fetch("/api/forms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: formName.trim(),
+        userId: "1",
+        anonymous: true,
+        cpf_list: [],
+        questions: questions.map((q, index) => ({
+          pergunta: q.text,
+          type: q.type,
+          required: true,
+          order: index
+        }))
+      }),
+    })
+
+    if (!res.ok) {
+      throw new Error("Erro ao salvar formulário")
+    }
+
+    await res.json()
+
+    alert("Formulário salvo com sucesso")
+    setFormName("")
+    setQuestions([])
+  } catch (error: any) {
+    toast.error(error.message || "Erro ao salvar formulário")
+  }
+}
 
 
   const renderTypeBadge = (type: QuestionType) => {

@@ -37,6 +37,7 @@ export default function FormResponsePage() {
 
   const [form, setForm] = useState<Form | null>(null)
   const [answers, setAnswers] = useState<Record<string, any>>({})
+  const router = useRouter()
 
   useEffect(() => {
     if (!formId) return
@@ -126,6 +127,8 @@ export default function FormResponsePage() {
       }
 
       toast.success("Respostas enviadas com sucesso!")
+      router.push("/responder/thanks")
+      
       setAnswers({})
     } catch {
       toast.error("Erro ao enviar respostas")
