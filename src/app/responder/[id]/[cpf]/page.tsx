@@ -191,16 +191,25 @@ const handleSubmit = async () => {
             )}
 
             {q.type === "AVALIACAO" && (
-              <Input
-                type="number"
-                min={1}
-                max={q.options?.length || 5}
-                value={answers[q.id] || ""}
-                onChange={(e) =>
-                  handleChange(q.id, Number(e.target.value))
-                }
-                className="bg-gray-700 text-white border-gray-600 placeholder-gray-400"
-              />
+              <div className="flex gap-2">
+              {Array.from({ length: q.options?.length || 5 }).map((_, i) => {
+                const value = i + 1
+                const ativo = (answers[q.id] || 0) >= value
+            
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleChange(q.id, value)}
+                    className={`text-3xl transition ${
+                      ativo ? "text-yellow-400" : "text-gray-500 hover:text-yellow-300"
+                    }`}
+                  >
+                    ★
+                  </button>
+                )
+              })}
+            </div>
             )}
 
             {q.type === "RADIO" && q.options && (
