@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 
+
+
+
+
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     console.log("testes", body)
 
-    const { name, userId, anonymous, questions } = body
+    const { name, userId, anonymous, questions, cpf_list } = body
 
     if (!name || !userId) {
       return NextResponse.json(
@@ -21,6 +26,7 @@ export async function POST(req: NextRequest) {
         name,
         userId,
         anonymous: anonymous ?? true,
+        cpf_list: cpf_list ?? [],
         questions: {
           create: questions?.map((q: any, index: number) => ({
             pergunta: q.pergunta,
@@ -36,13 +42,16 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(form)
-  } catch {
+  } catch (error) {
+    console.error(error)
     return NextResponse.json(
       { error: "Erro ao criar formulário" },
       { status: 500 }
     )
   }
 }
+
+
 
 //nesse get busco o form pelo id do usuario
 export async function GET(req: NextRequest) {
