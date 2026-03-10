@@ -83,7 +83,7 @@ export default function RespostasPage() {
 
   return (
     /* AJUSTE DE COR: bg-white para claro e bg-[#1e293b] para escuro */
-    <div className="min-h-screen bg-[#EFF6F4] dark:bg-[#1e293b] text-neutral-900 dark:text-neutral-100 transition-colors duration-500 p-4 md:p-10">
+    <div className="min-h-screen bg-[#EFF6F4] dark:bg-[#0B161A] text-neutral-900 dark:text-neutral-100 transition-colors duration-500 p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         
         <header className="mb-12">
