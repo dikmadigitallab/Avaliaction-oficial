@@ -73,14 +73,14 @@ export function FormBuilder({
     useState("")
   const [newQuestionType, setNewQuestionType] =
     useState<QuestionType | "">("")
-  const [newMaxScore, setNewMaxScore] = useState("")
+  const [valores, setValores] = useState<string>("Ótimo, Bom, Regular, Ruim")
   const [newOptions, setNewOptions] = useState<string[]>([])
   const [newOptionText, setNewOptionText] = useState("")
 
   const resetNewQuestion = () => {
     setNewQuestionText("")
     setNewQuestionType("")
-    setNewMaxScore("")
+    setValores("")
     setNewOptions([])
     setNewOptionText("")
     setIsAddingQuestion(false)
@@ -111,7 +111,7 @@ const id = session.data?.user?.id
     }
   
     if (newQuestionType === "AVALIACAO") {
-      if (!newMaxScore || Number(newMaxScore) < 1) {
+      if (!valores || Number(valores) < 1) {
         toast.error("Informe uma nota máxima válida.")
         return
       }
@@ -136,7 +136,7 @@ const id = session.data?.user?.id
     }
   
     if (newQuestionType === "AVALIACAO") {
-      question.maxScore = Number(newMaxScore)
+      question.maxScore = Number(valores)
     }
   
   
@@ -319,6 +319,7 @@ const id = session.data?.user?.id
                 </Badge>
               )}
 
+
               {(
                 q.type === "CHECKBOX" ||
                 q.type === "RADIO" ||
@@ -384,30 +385,23 @@ const id = session.data?.user?.id
                       Avaliacao
                     </SelectItem>
 
-                    <SelectItem value="CHECKBOX">
-                      Checkbox
-                    </SelectItem>
 
-                    <SelectItem value="RADIO">
-                      Radio
-                    </SelectItem>
-
-                    <SelectItem value="LIST">
-                      Lista
-                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              
 
+            
               {newQuestionType === "AVALIACAO" && (
                 <div>
                   <Label>Nota maxima *</Label>
                   <Input
-                    type="number"
+                    type="text"
+                    disabled
                     min={1}
-                    value={newMaxScore}
+                    value={valores}
                     onChange={(e) =>
-                      setNewMaxScore(e.target.value)
+                      setValores(e.target.value)
                     }
                   />
                 </div>
