@@ -168,47 +168,6 @@ const id = session.data?.user?.id
 
 
 
-/* 
-  const handleSubmit = async () => {
-    if (!formName.trim()) {
-      toast.error("Informe o nome do formulário.")
-      return
-    }
-    if (questions.length === 0) {
-      toast.error("Adicione pelo menos uma pergunta.")
-      return
-    }
-    try {
-      const res = await fetch("/api/forms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formName.trim(),
-          userId: "1", //pegar o id do  use
-          anonymous: true,
-          questions: questions.map((q, index) => ({
-            pergunta: q.text,
-            type: q.type,
-            required: true,
-            order: index
-          }))
-        }),
-      })
-      if (!res.ok) {
-        throw new Error("Erro ao salvar formulário")
-      }
-      await res.json()
-      alert("Formulário salvo com sucesso")
-      setFormName("")
-      setQuestions([])
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao salvar formulário")
-    }
-  }
-
- */
-
-
   const handleSubmit = async () => {
   if (!formName.trim()) {
     toast.error("Informe o nome do formulário.")
@@ -425,10 +384,6 @@ const id = session.data?.user?.id
                       Avaliacao
                     </SelectItem>
 
-                    <SelectItem value="BOOLEAN">
-                      Booleano
-                    </SelectItem>
-
                     <SelectItem value="CHECKBOX">
                       Checkbox
                     </SelectItem>
@@ -448,7 +403,7 @@ const id = session.data?.user?.id
                 <div>
                   <Label>Nota maxima *</Label>
                   <Input
-                    type="number"
+                    type="radio"
                     min={1}
                     value={newMaxScore}
                     onChange={(e) =>

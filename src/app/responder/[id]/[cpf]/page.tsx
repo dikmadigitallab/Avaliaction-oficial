@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation"
 type QuestionType =
   | "TEXT"
   | "AVALIACAO"
-  | "BOOLEAN"
   | "CHECKBOX"
   | "RADIO"
   | "LIST"
@@ -156,45 +155,24 @@ export default function FormResponsePage() {
               />
             )}
 
-            {(q.type === "BOOLEAN" || q.type === "LIST") && q.options && (
-              <select
-                value={answers[q.id] || ""}
-                onChange={(e) => handleChange(q.id, e.target.value)}
-                className="bg-gray-700 text-white border border-gray-600 rounded p-2"
-              >
-                <option value="">Selecione</option>
-                {q.options.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            )}
+       
 
-            {q.type === "AVALIACAO" && (
-              <div className="flex gap-2">
-                {Array.from({ length: q.options?.length || 5 }).map((_, i) => {
-                  const value = i + 1
-                  const ativo = (answers[q.id] || 0) >= value
-
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => handleChange(q.id, value)}
-                      className={`text-3xl transition ${
-                        ativo
-                          ? "text-yellow-400"
-                          : "text-gray-500 hover:text-yellow-300"
-                      }`}
-                    >
-                      ★
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-
+       {q.type === "AVALIACAO" && (
+  <div className="flex flex-row gap-2">
+    {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
+      <label key={op} className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="radio"
+          name={q.id}
+          value={op}
+          checked={answers[q.id] === op}
+          onChange={() => handleChange(q.id, op)}
+        />
+        <span>{op}</span>
+      </label>
+    ))}
+  </div>
+)}
             {q.type === "RADIO" && q.options && (
               <div className="flex flex-col gap-2">
                 {q.options.map((opt) => (

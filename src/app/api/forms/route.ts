@@ -131,15 +131,21 @@ export async function DELETE(req: NextRequest) {
       )
     }
 
-    await prisma.question.deleteMany({
-      where: {
-        formId: id
-      }
-    })
-
-    await prisma.form.delete({
-      where: { id }
-    })
+    await prisma.$transaction([
+      prisma.resposta.deleteMany({
+        where: {
+          formId: id
+        }
+      }),
+      prisma.question.deleteMany({
+        where: {
+          formId: id
+        }
+      }),
+      prisma.form.delete({
+        where: { id }
+      })
+    ])
 
     return NextResponse.json({
       message: "Formulário removido com sucesso"

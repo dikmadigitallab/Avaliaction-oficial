@@ -71,6 +71,8 @@ export default function FormViewPage() {
     if (formId) fetchForm()
   }, [formId])
 
+
+  
   const handleDelete = async () => {
     try {
       const res = await fetch(`/api/forms?id=${formId}`, {
