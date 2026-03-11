@@ -403,7 +403,7 @@ const id = session.data?.user?.id
                 <div>
                   <Label>Nota maxima *</Label>
                   <Input
-                    type="radio"
+                    type="number"
                     min={1}
                     value={newMaxScore}
                     onChange={(e) =>
