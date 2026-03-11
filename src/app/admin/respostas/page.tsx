@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,35 +19,42 @@ import { toast } from 'sonner'
 
 type Question = {
   id: string
-  title: string
+  pergunta: string
+  required: boolean
+  type: string
+  order: number
+  formId: string
+  createdAt: string
+  updatedAt: string
 }
 
 type Form = {
   id: string
-  title: string
-  createdAt: string
+  name: string
+  anonymous: boolean
+  cpf_list: string[]
   userId: string
+  createdAt: string
+  updatedAt: string
   questions: Question[]
 }
 
 export default function FormulariosPage() {
+  const { status } = useSession()
   const [forms, setForms] = useState<Form[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    const userId = '1'
-    if (!userId) {
-      toast.error('Usuário não identificado')
-      return
-    }
+    if (status === 'loading') return
+    if (status !== 'authenticated') return
 
-    fetchForms(userId)
-  }, [])
+    fetchForms()
+  }, [status])
 
-  const fetchForms = async (userId: string) => {
+  const fetchForms = async () => {
     try {
-      const res = await fetch(`/api/forms?userId=${userId}`)
+      const res = await fetch('/api/forms/all')
       const data = await res.json()
 
       if (!res.ok) {
@@ -109,7 +117,7 @@ export default function FormulariosPage() {
                   forms.map((form) => (
                     <TableRow key={form.id}>
                       <TableCell className="font-medium">
-                        {form.title}
+                        {form.name}
                       </TableCell>
 
                       <TableCell>

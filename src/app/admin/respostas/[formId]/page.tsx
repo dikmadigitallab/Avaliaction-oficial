@@ -85,136 +85,103 @@ export default function RespostasPage() {
 
   return (
     /* AJUSTE DE COR: bg-white para claro e bg-[#1e293b] para escuro */
-    <div className="min-h-screen bg-[#EFF6F4] dark:bg-[#0B161A] text-neutral-900 dark:text-neutral-100 transition-colors duration-500 p-4 md:p-10">
-      <div className="max-w-5xl mx-auto">
+<div className="min-h-screen bg-background text-foreground p-6 md:p-10">
+  <div className="max-w-4xl mx-auto space-y-10">
 
-        <header className="mb-12">
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-3">
-            <ClipboardList size={14} />
-            Gestão de Feedback
-          </div>
+    <header className="space-y-2">
+      <h1 className="text-3xl font-semibold">Avaliações recebidas</h1>
+      <p className="text-sm text-muted-foreground">
+        Respostas enviadas para este formulário
+      </p>
+    </header>
 
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight dark:text-white uppercase">
-            Avaliações Recebidas
-          </h1>
+    {erroAtivo && (
+      <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+        <AlertCircle size={18} />
+        <span className="text-sm">{erroAtivo}</span>
+      </div>
+    )}
 
-          <div className="h-1.5 w-24 bg-blue-600 mt-4 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]" />
-        </header>
+    {dados.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-20 border rounded-xl text-muted-foreground">
+        <ClipboardList size={32} className="mb-3 opacity-40" />
+        <p className="text-sm">Nenhuma resposta encontrada</p>
+      </div>
+    ) : (
+      <div className="space-y-5">
+        {dados.map((registro, index) => {
+          const isOpen = aberto === registro.id
 
-        {erroAtivo && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 rounded-2xl flex items-center gap-3">
-            <AlertCircle size={20} />
-            <p className="text-sm font-semibold">{erroAtivo}</p>
-          </div>
-        )}
+          return (
+            <div
+              key={registro.id}
+              className="border rounded-xl bg-card transition hover:shadow-sm"
+            >
+              <button
+                onClick={() => setAberto(isOpen ? null : registro.id)}
+                className="w-full flex items-center justify-between p-5 text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-muted">
+                    <User size={18} />
+                  </div>
 
-        <div className="space-y-6">
-          {dados.length === 0 ? (
-            <div className="text-center py-24 border-2 border-dashed border-neutral-200 dark:border-white/10 rounded-[2rem]">
-              <p className="text-neutral-400 font-medium">Nenhuma resposta disponível.</p>
-            </div>
-          ) : (
-            dados.map((registro, index) => {
-              const isOpen = aberto === registro.id
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">
+                      Resposta #{dados.length - index}
+                    </p>
 
-              return (
-                <div
-                  key={registro.id}
-                  className={`group transition-all duration-300 rounded-[2rem] border ${
-                    isOpen
-                      ? "border-blue-500/50 bg-white dark:bg-black/20 shadow-2xl ring-1 ring-blue-500/20"
-                      : "border-neutral-200 dark:border-white/10 bg-white/50 dark:bg-black/10 hover:border-neutral-300 dark:hover:border-white/20"
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar size={13} />
+                      {new Date(registro.createdAt).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                </div>
+
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform ${
+                    isOpen ? "rotate-180 text-primary" : "text-muted-foreground"
                   }`}
-                >
-                  <button
-                    onClick={() => setAberto(isOpen ? null : registro.id)}
-                    className="w-full flex items-center justify-between p-6 md:p-8 text-left outline-none"
-                  >
-                    <div className="flex items-center gap-4 md:gap-6">
-                      <div
-                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-                          isOpen
-                            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/40 scale-110"
-                            : "bg-neutral-100 dark:bg-white/5 text-neutral-400"
-                        }`}
-                      >
-                        <User size={26} />
+                />
+              </button>
+
+              {isOpen && (
+                <div className="border-t px-5 pb-5 pt-4 space-y-4">
+                  {registro.respostas.map((item, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border bg-muted/30 p-4 flex flex-col gap-3"
+                    >
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Pergunta
+                        </p>
+
+                        <p className="text-sm font-medium">
+                          {formatarPergunta(item)}
+                        </p>
                       </div>
 
                       <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-lg">
-                            ID {dados.length - index}
-                          </span>
-                        </div>
-
-                        <h3 className="font-black text-xl leading-none dark:text-neutral-100 uppercase">
-                          Colaborador Anonimizado
-                        </h3>
-
-                        <p className="text-xs text-neutral-500 mt-2.5 flex items-center gap-1.5 font-bold">
-                          <Calendar size={14} className="text-blue-500" />
-                          {new Date(registro.createdAt).toLocaleDateString("pt-BR")}
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Resposta
                         </p>
+
+                        <span className="inline-block text-sm font-medium bg-background border px-3 py-1.5 rounded-md">
+                          {formatarResposta(item)}
+                        </span>
                       </div>
                     </div>
-
-                    <div
-                      className={`transition-all duration-300 ${
-                        isOpen ? "text-blue-600" : "text-neutral-300 dark:text-neutral-700"
-                      }`}
-                    >
-                      <ChevronDown
-                        className={`transition-transform duration-500 ${
-                          isOpen ? "rotate-180 text-blue-500" : ""
-                        }`}
-                        size={28}
-                      />
-                    </div>
-                  </button>
-
-                  <div
-                    className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                      isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <div className="px-6 md:px-8 pb-10 pt-2 space-y-4">
-                      <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 dark:via-white/10 to-transparent mb-8" />
-
-                      {registro.respostas.map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[1.5rem] bg-neutral-50/50 dark:bg-black/40 border border-neutral-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-black/60"
-                        >
-                          <div className="flex-1">
-                            <p className="text-[10px] uppercase font-black text-blue-600 dark:text-blue-500 tracking-[0.2em] mb-2">
-                              Questão
-                            </p>
-
-                            <p className="text-base font-bold text-neutral-700 dark:text-neutral-200 leading-relaxed">
-                              {formatarPergunta(item)}
-                            </p>
-                          </div>
-
-                          <div className="md:text-right flex flex-col items-start md:items-end min-w-[120px]">
-                            <p className="text-[10px] uppercase font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] mb-2">
-                              Resposta
-                            </p>
-
-                            <span className="inline-block px-5 py-2.5 bg-white dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-black rounded-xl border border-neutral-200 dark:border-blue-500/20 shadow-sm">
-                              {formatarResposta(item)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              )
-            })
-          )}
-        </div>
+              )}
+            </div>
+          )
+        })}
       </div>
-    </div>
+    )}
+  </div>
+</div>
   )
 }
