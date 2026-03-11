@@ -17,7 +17,6 @@ enum UserType {
 enum QuestionType {
   TEXT
   AVALIACAO
-  BOOLEAN
   CHECKBOX
   RADIO
 }
@@ -29,10 +28,8 @@ model User {
   email       String   @unique
   cpf         String   @unique
   senha       String
-
   cpfs        Cpf[]
   formularios Form[]
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -40,10 +37,8 @@ model User {
 model Cpf {
   id        String   @id @default(uuid())
   cpf       String   @unique
-
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -57,10 +52,8 @@ model Form {
   cpf_list  String[] //lista todos os cpfs que responderam usa isso pra impedir que cpfs con
   userId    String
   user      User       @relation(fields: [userId], references: [id])
-
   questions Question[]
   respostas Resposta[]
-
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -69,12 +62,9 @@ model Question {
   id        String       @id @default(uuid())
   pergunta  String
   type      QuestionType @default(TEXT)
-  required  Boolean      @default(false)
   order     Int
-
   formId    String
   form      Form         @relation(fields: [formId], references: [id])
-
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 }
