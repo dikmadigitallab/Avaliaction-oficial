@@ -87,6 +87,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
+
+//precisa mexer ainda
 export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
