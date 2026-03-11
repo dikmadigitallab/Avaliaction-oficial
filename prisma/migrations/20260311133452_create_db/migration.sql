@@ -2,7 +2,7 @@
 CREATE TYPE "UserType" AS ENUM ('EMPRESA', 'GERENTE', 'SUPERVISOR', 'ADMINISTRATOR', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "QuestionType" AS ENUM ('TEXT', 'AVALIACAO', 'BOOLEAN', 'CHECKBOX', 'RADIO');
+CREATE TYPE "QuestionType" AS ENUM ('TEXT', 'AVALIACAO', 'CHECKBOX', 'RADIO');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -31,10 +31,10 @@ CREATE TABLE "Cpf" (
 
 -- CreateTable
 CREATE TABLE "Form" (
-    "cpf" TEXT NOT NULL,
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "anonymous" BOOLEAN NOT NULL DEFAULT true,
+    "cpf_list" TEXT[],
     "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -47,7 +47,6 @@ CREATE TABLE "Question" (
     "id" TEXT NOT NULL,
     "pergunta" TEXT NOT NULL,
     "type" "QuestionType" NOT NULL DEFAULT 'TEXT',
-    "required" BOOLEAN NOT NULL DEFAULT false,
     "order" INTEGER NOT NULL,
     "formId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -74,9 +73,6 @@ CREATE UNIQUE INDEX "User_cpf_key" ON "User"("cpf");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cpf_cpf_key" ON "Cpf"("cpf");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Form_cpf_key" ON "Form"("cpf");
 
 -- AddForeignKey
 ALTER TABLE "Cpf" ADD CONSTRAINT "Cpf_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
