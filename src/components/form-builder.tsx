@@ -32,6 +32,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { useSession } from "next-auth/react"
+
+
 export type QuestionType =
   | "TEXT"
   | "AVALIACAO"
@@ -83,6 +86,10 @@ export function FormBuilder({
     setNewOptionText("")
     setIsAddingQuestion(false)
   }
+
+// definição do id
+const session = useSession()
+const id = session.data?.user?.id
 
   const handleAddOption = () => {
     if (!newOptionText.trim()) return
@@ -223,7 +230,7 @@ export function FormBuilder({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: formName.trim(),
-        userId: "1",
+        userId: id,
         anonymous: true,
         cpf_list: [],
         questions: questions.map((q, index) => ({
