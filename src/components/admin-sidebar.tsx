@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   //{ href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
 
   { href: "/admin/respostas/", label: "Respostas", icon: Mail, permission: "Respostas" },
-  { href: "/admin/cpf", label: "CPF", icon: CreditCardIcon, permission: "CPF" },
+ // { href: "/admin/cpf", label: "CPF", icon: CreditCardIcon, permission: "CPF" },
 
 ]
 
