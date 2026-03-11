@@ -156,12 +156,13 @@ export default function FormViewPage() {
             variant="outline"
             className="gap-2"
             onClick={() =>
-              window.open(`/responder/${formId}`, "_blank")
+              window.open(`/admin/formularios/preview/${formId}`, "_blank")
             }
           >
             <Eye className="h-4 w-4" />
             Previsualizar
           </Button>
+
 
           {!editing ? (
             <Button
