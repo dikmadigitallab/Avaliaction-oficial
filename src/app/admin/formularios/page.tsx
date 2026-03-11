@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -41,11 +42,13 @@ export default function FormulariosPage() {
   const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const session = useSession();
+ const id = session.data?.user?.id
 
   useEffect(() => {
     async function fetchForms() {
       try {
-        const res = await fetch("/api/forms?userId=1");
+        const res = await fetch(`/api/forms?userId=${id}`);
 
         if (!res.ok) throw new Error();
 
