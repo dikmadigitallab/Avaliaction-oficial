@@ -38,7 +38,6 @@ import { useSession } from "next-auth/react"
 export type QuestionType =
   | "TEXT"
   | "AVALIACAO"
-  | "BOOLEAN"
   | "CHECKBOX"
   | "RADIO"
   | "LIST"
@@ -119,7 +118,7 @@ const id = session.data?.user?.id
     }
   
     if (
-      newQuestionType === "BOOLEAN" ||
+    
       newQuestionType === "CHECKBOX" ||
       newQuestionType === "RADIO" ||
       newQuestionType === "LIST"
@@ -140,9 +139,6 @@ const id = session.data?.user?.id
       question.maxScore = Number(newMaxScore)
     }
   
-    if (newQuestionType === "BOOLEAN") {
-      question.options = newOptions
-    }
   
     if (newQuestionType === "CHECKBOX") {
       question.options = newOptions
@@ -273,13 +269,7 @@ const id = session.data?.user?.id
             Avaliacao
           </Badge>
         )
-      case "BOOLEAN":
-        return (
-          <Badge variant="secondary" className="gap-1 text-xs">
-            <ToggleRight className="h-3 w-3" />
-            Booleano
-          </Badge>
-        )
+
       case "CHECKBOX":
         return (
           <Badge variant="secondary" className="gap-1 text-xs">
@@ -370,7 +360,7 @@ const id = session.data?.user?.id
                 </Badge>
               )}
 
-              {(q.type === "BOOLEAN" ||
+              {(
                 q.type === "CHECKBOX" ||
                 q.type === "RADIO" ||
                 q.type === "LIST") &&
@@ -468,7 +458,7 @@ const id = session.data?.user?.id
                 </div>
               )}
 
-              {(newQuestionType === "BOOLEAN" ||
+              {(
                 newQuestionType === "CHECKBOX" ||
                 newQuestionType === "RADIO" ||
                 newQuestionType === "LIST") && (
