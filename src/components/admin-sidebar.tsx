@@ -19,24 +19,27 @@ import {
   ShieldCheck,
   Airplay,
   Mail,
+  CarIcon,
+  CreditCardIcon,
 } from "lucide-react"
 import { clearAdminSession } from "@/lib/store"
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Card, CardAction, CardDescription } from "./ui/card"
 
 const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard" },
-  { href: "/admin/feedbacks", label: "Feedbacks", icon: MessageSquare, permission: "feedbacks" },
+  //{ href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard" },
+  //{ href: "/admin/feedbacks", label: "Feedbacks", icon: MessageSquare, permission: "feedbacks" },
   { href: "/admin/formularios", label: "Formulários", icon: ClipboardList, permission: "formularios" },
-  { href: "/admin/logs", label: "Logs de Acesso", icon: FileText, permission: "logs" },
-  { href: "/admin/supervisores", label: "Supervisores", icon: Users, permission: "supervisores" },
-  { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3, permission: "relatorios" },
-  { href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
-  { href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
-  { href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
+  //{ href: "/admin/logs", label: "Logs de Acesso", icon: FileText, permission: "logs" },
+  { href: "/admin/usuarios", label: "Usuários", icon: Users, permission: "Usuários" },
+ // { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3, permission: "relatorios" },
+  //{ href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
+  //{ href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
+  //{ href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
 
   { href: "/admin/respostas/", label: "Respostas", icon: Mail, permission: "Respostas" },
-  { href: "/admin/cpf/", label: "CPF's Cadastrados", icon: Mail, permission: "CPF Cadastrados" },
+  { href: "/admin/cpf", label: "CPF", icon: CreditCardIcon, permission: "CPF" },
 
 ]
 
