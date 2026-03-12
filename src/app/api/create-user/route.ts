@@ -2,19 +2,48 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { requestAcess } from "@/hooks/requestAcess"
+import { UserType } from "@prisma/client"
 
 
 
 // GET ALL
-export async function GET() {
-   const session = await requestAcess()
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+
+    const userType = searchParams.get("userType") || undefined
+    const cpf = searchParams.get("cpf") || undefined
+    const nome = searchParams.get("nome") || undefined
+    const email = searchParams.get("email") || undefined
+
     const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" }
+      where: {
+        userType: userType as any,
+        cpf: cpf
+          ? {
+              contains: cpf
+            }
+          : undefined,
+        nome: nome
+          ? {
+              contains: nome,
+              mode: "insensitive"
+            }
+          : undefined,
+        email: email
+          ? {
+              contains: email,
+              mode: "insensitive"
+            }
+          : undefined
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
     })
 
-    return NextResponse.json(users)
-  } catch {
+    return NextResponse.json(users, { status: 200 })
+  } catch (error) {
     return NextResponse.json(
       { error: "Erro ao buscar usuários" },
       { status: 500 }
@@ -22,12 +51,10 @@ export async function GET() {
   }
 }
 
-
 // CREATE
 
 
 export async function POST(req: NextRequest) {
-  const session = await requestAcess()
   try {
     const { nome, cpf, email, senha, userType } = await req.json()
 
@@ -38,10 +65,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const tiposValidos = ["EMPRESA", "GERENTE", "SUPERVISOR", "ADMINISTRATOR", "ADMIN"]
-    const tipoFinal = tiposValidos.includes(userType) ? userType : "GERENTE"
+    const tiposValidos: UserType[] = [
+      "EMPRESA",
+      "GERENTE",
+      "SUPERVISOR",
+      "ADMINISTRATOR",
+      "ADMIN"
+    ]
 
-    // Criptografa a senha antes de salvar
+    const tipoFinal: UserType = tiposValidos.includes(userType)
+      ? userType
+      : "GERENTE"
+
     const hashSenha = await bcrypt.hash(senha, 10)
 
     const user = await prisma.user.create({
@@ -49,13 +84,15 @@ export async function POST(req: NextRequest) {
         nome,
         cpf,
         email,
-        senha: hashSenha, // usa o hash
+        senha: hashSenha,
         userType: tipoFinal
       }
     })
 
     return NextResponse.json(user, { status: 201 })
+
   } catch (error: any) {
+
     if (error.code === "P2002") {
       return NextResponse.json(
         { error: "CPF ou email já cadastrado" },
@@ -64,13 +101,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Erro ao criar usuário" },
+      { error: error.message || "Erro ao criar usuário" },
       { status: 500 }
     )
   }
 }
-
-
 
 // UPDATE
 export async function PUT(req: NextRequest) {
