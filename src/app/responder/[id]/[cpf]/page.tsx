@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 
 type QuestionType =
   | "TEXT"
@@ -36,6 +37,8 @@ export default function FormResponsePage() {
 
   const [form, setForm] = useState<Form | null>(null)
   const [answers, setAnswers] = useState<Record<string, any>>({})
+  const [sending, setSending] = useState(false)
+
   const router = useRouter()
 
   useEffect(() => {
@@ -102,6 +105,8 @@ export default function FormResponsePage() {
     }
 
     try {
+      setSending(true)
+
       const respostasFormatadas = form.questions.map((q) => ({
         Pergunta: q.pergunta,
         Resposta: Array.isArray(answers[q.id])
@@ -122,28 +127,55 @@ export default function FormResponsePage() {
       if (!res.ok) {
         const data = await res.json()
         toast.error(data.error || "Erro ao enviar respostas")
+        setSending(false)
         return
       }
 
       toast.success("Respostas enviadas com sucesso!")
       router.push("/responder/thanks")
-      
       setAnswers({})
     } catch {
       toast.error("Erro ao enviar respostas")
+      setSending(false)
     }
   }
 
-  if (!form) return <p>Carregando formulário...</p>
+  if (!form)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#031b1c] text-white">
+        Carregando formulário...
+      </div>
+    )
 
   return (
-    <div className="flex justify-center items-start min-h-screen p-6 bg-gray-900">
-      <div className="w-full max-w-3xl bg-gray-800 text-white p-8 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto" style={{ maxHeight: "90vh" }}>
-        <h1 className="text-3xl font-bold text-center">{form.name}</h1>
+    <div className="min-h-screen flex items-center justify-center px-6 py-16 bg-[#031b1c]">
 
-        {form.questions.map((q) => (
-          <div key={q.id} className="flex flex-col gap-2">
-            <label className="font-medium">
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-3xl bg-[#06292b] border border-[#0e3f41] rounded-3xl shadow-2xl p-10 flex flex-col gap-8 text-white"
+      >
+
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-4xl font-semibold text-center tracking-wide"
+        >
+          {form.name}
+        </motion.h1>
+
+        {form.questions.map((q, index) => (
+          <motion.div
+            key={q.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.08 }}
+            className="flex flex-col gap-3"
+          >
+
+            <label className="text-lg text-gray-200">
               {q.pergunta} {q.required && "*"}
             </label>
 
@@ -151,32 +183,37 @@ export default function FormResponsePage() {
               <Input
                 value={answers[q.id] || ""}
                 onChange={(e) => handleChange(q.id, e.target.value)}
-                className="bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                className="h-12 rounded-xl bg-[#031b1c] border border-[#0e3f41] focus:border-[#18c2a4] focus:ring-2 focus:ring-[#18c2a4]/40"
               />
             )}
 
-       
+            {q.type === "AVALIACAO" && (
+              <div className="flex flex-wrap gap-3">
+                {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
+                  <label
+                    key={op}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0e3f41] bg-[#031b1c] cursor-pointer hover:border-[#18c2a4] transition"
+                  >
+                    <input
+                      type="radio"
+                      name={q.id}
+                      value={op}
+                      checked={answers[q.id] === op}
+                      onChange={() => handleChange(q.id, op)}
+                    />
+                    <span>{op}</span>
+                  </label>
+                ))}
+              </div>
+            )}
 
-       {q.type === "AVALIACAO" && (
-  <div className="flex flex-row gap-2">
-    {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
-      <label key={op} className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="radio"
-          name={q.id}
-          value={op}
-          checked={answers[q.id] === op}
-          onChange={() => handleChange(q.id, op)}
-        />
-        <span>{op}</span>
-      </label>
-    ))}
-  </div>
-)}
             {q.type === "RADIO" && q.options && (
               <div className="flex flex-col gap-2">
                 {q.options.map((opt) => (
-                  <label key={opt} className="flex gap-2 items-center">
+                  <label
+                    key={opt}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0e3f41] bg-[#031b1c] cursor-pointer hover:border-[#18c2a4] transition"
+                  >
                     <input
                       type="radio"
                       name={q.id}
@@ -193,7 +230,10 @@ export default function FormResponsePage() {
             {q.type === "CHECKBOX" && q.options && (
               <div className="flex flex-col gap-2">
                 {q.options.map((opt) => (
-                  <label key={opt} className="flex gap-2 items-center">
+                  <label
+                    key={opt}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0e3f41] bg-[#031b1c] cursor-pointer hover:border-[#18c2a4] transition"
+                  >
                     <input
                       type="checkbox"
                       value={opt}
@@ -205,15 +245,32 @@ export default function FormResponsePage() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
 
-        <div className="flex justify-center mt-4">
-          <Button onClick={handleSubmit} className="px-8 py-3">
-            Enviar respostas
-          </Button>
+        <div className="flex justify-center pt-6">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              onClick={handleSubmit}
+              disabled={sending}
+              className="px-10 py-6 text-lg rounded-2xl bg-[#18c2a4] hover:bg-[#22d3b6] text-black font-semibold shadow-lg shadow-[#18c2a4]/30 transition flex items-center gap-3"
+            >
+              {sending && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
+                />
+              )}
+              {sending ? "Enviando..." : "Enviar respostas"}
+            </Button>
+          </motion.div>
         </div>
-      </div>
+
+      </motion.div>
     </div>
   )
 }
