@@ -20,7 +20,7 @@ interface Question {
   type: QuestionType
   required: boolean
   order: number
-  options?: string[]
+  itens?: string[]
 }
 
 interface Form {
@@ -127,7 +127,7 @@ export default function FormResponsePage() {
 
       toast.success("Respostas enviadas com sucesso!")
       router.push("/responder/thanks")
-      
+
       setAnswers({})
     } catch {
       toast.error("Erro ao enviar respostas")
@@ -138,7 +138,10 @@ export default function FormResponsePage() {
 
   return (
     <div className="flex justify-center items-start min-h-screen p-6 bg-gray-900">
-      <div className="w-full max-w-3xl bg-gray-800 text-white p-8 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto" style={{ maxHeight: "90vh" }}>
+      <div
+        className="w-full max-w-3xl bg-gray-800 text-white p-8 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto"
+        style={{ maxHeight: "90vh" }}
+      >
         <h1 className="text-3xl font-bold text-center">{form.name}</h1>
 
         {form.questions.map((q) => (
@@ -155,27 +158,26 @@ export default function FormResponsePage() {
               />
             )}
 
-       
+            {q.type === "AVALIACAO" && (
+              <div className="flex flex-row gap-2">
+                {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
+                  <label key={op} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={q.id}
+                      value={op}
+                      checked={answers[q.id] === op}
+                      onChange={() => handleChange(q.id, op)}
+                    />
+                    <span>{op}</span>
+                  </label>
+                ))}
+              </div>
+            )}
 
-       {q.type === "AVALIACAO" && (
-  <div className="flex flex-row gap-2">
-    {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
-      <label key={op} className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="radio"
-          name={q.id}
-          value={op}
-          checked={answers[q.id] === op}
-          onChange={() => handleChange(q.id, op)}
-        />
-        <span>{op}</span>
-      </label>
-    ))}
-  </div>
-)}
-            {q.type === "RADIO" && q.options && (
+            {q.type === "RADIO" && q.itens && (
               <div className="flex flex-col gap-2">
-                {q.options.map((opt) => (
+                {q.itens.map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
                       type="radio"
@@ -190,9 +192,9 @@ export default function FormResponsePage() {
               </div>
             )}
 
-            {q.type === "CHECKBOX" && q.options && (
+            {q.type === "CHECKBOX" && q.itens && (
               <div className="flex flex-col gap-2">
-                {q.options.map((opt) => (
+                {q.itens.map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
                       type="checkbox"
@@ -204,6 +206,21 @@ export default function FormResponsePage() {
                   </label>
                 ))}
               </div>
+            )}
+
+            {q.type === "LIST" && q.itens && (
+              <select
+                value={answers[q.id] || ""}
+                onChange={(e) => handleChange(q.id, e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white p-2 rounded"
+              >
+                <option value="">Selecione...</option>
+                {q.itens.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
         ))}

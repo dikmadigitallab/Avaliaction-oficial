@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { QuestionType } from "@prisma/client"
+
 
 
 
@@ -9,14 +11,14 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    console.log("testes", body)
 
-    const { name, userId, anonymous, questions, cpf_list } = body
+    const body = await req.json()
+
+    const { name, userId, anonymous, cpf_list, questions } = body
 
     if (!name || !userId) {
       return NextResponse.json(
-        { error: "name e userId são obrigatórios" },
+        { error: "Dados obrigatórios não informados" },
         { status: 400 }
       )
     }
@@ -25,14 +27,15 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         userId,
-        anonymous: anonymous ?? true,
-        cpf_list: cpf_list ?? [],
+        anonymous,
+        cpf_list,
         questions: {
-          create: questions?.map((q: any, index: number) => ({
+          create: questions.map((q: any) => ({
             pergunta: q.pergunta,
-            type: q.type,
-            required: q.required ?? false,
-            order: q.order ?? index
+            type: q.type as QuestionType,
+            required: q.required ?? true,
+            order: q.order ?? 0,
+            itens: q.itens ?? []
           }))
         }
       },
@@ -41,16 +44,18 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    return NextResponse.json(form)
-  } catch (error) {
+    return NextResponse.json(form, { status: 201 })
+
+  } catch (error: any) {
+
     console.error(error)
+
     return NextResponse.json(
-      { error: "Erro ao criar formulário" },
+      { error: error.message || "Erro ao criar formulário" },
       { status: 500 }
     )
   }
 }
-
 
 
 //nesse get busco o form pelo id do usuario

@@ -54,8 +54,11 @@ export async function GET(req: NextRequest) {
 
 
 
+
+
 export async function GET(req: NextRequest) {
   try {
+
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
 
@@ -67,13 +70,27 @@ export async function GET(req: NextRequest) {
     }
 
     const form = await prisma.form.findUnique({
-      where: { id },
+      where: {
+        id
+      },
       include: {
         questions: {
-          orderBy: { order: "asc" } // garante ordem das perguntas
+          orderBy: {
+            order: "asc"
+          },
+          select: {
+            id: true,
+            pergunta: true,
+            type: true,
+            required: true,
+            order: true,
+            itens: true
+          }
         },
         respostas: {
-          orderBy: { createdAt: "asc" } // respostas em ordem de criação
+          orderBy: {
+            createdAt: "asc"
+          }
         }
       }
     })
@@ -86,7 +103,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(form)
+
   } catch (error) {
+
     console.error(error)
 
     return NextResponse.json(

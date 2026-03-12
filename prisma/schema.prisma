@@ -19,6 +19,7 @@ enum QuestionType {
   AVALIACAO
   CHECKBOX
   RADIO
+  LIST
 }
 
 model User {
@@ -64,6 +65,7 @@ model Question {
   required  Boolean      @default(true)
   type      QuestionType @default(TEXT)
   order     Int
+  itens     String[]
   formId    String
   form      Form         @relation(fields: [formId], references: [id])
   createdAt DateTime     @default(now())
