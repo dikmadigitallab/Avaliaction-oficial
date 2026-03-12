@@ -77,111 +77,115 @@ export default function RespostasPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-transparent">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#EFF6F4] dark:bg-[#0B161A] text-black dark:text-white">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
       </div>
     )
   }
 
   return (
-    /* AJUSTE DE COR: bg-white para claro e bg-[#1e293b] para escuro */
-<div className="min-h-screen bg-background text-foreground p-6 md:p-10">
-  <div className="max-w-4xl mx-auto space-y-10">
+    <div className="min-h-screen w-full bg-[#EFF6F4] dark:bg-[#0B161A] text-gray-800 dark:text-gray-200">
+      <div className="max-w-4xl mx-auto space-y-10 p-6 md:p-10">
 
-    <header className="space-y-2">
-      <h1 className="text-3xl font-semibold">Avaliações recebidas</h1>
-      <p className="text-sm text-muted-foreground">
-        Respostas enviadas para este formulário
-      </p>
-    </header>
+        <header className="space-y-2">
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
+            Avaliações recebidas
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Respostas enviadas para este formulário
+          </p>
+        </header>
 
-    {erroAtivo && (
-      <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-        <AlertCircle size={18} />
-        <span className="text-sm">{erroAtivo}</span>
-      </div>
-    )}
+        {erroAtivo && (
+          <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+            <AlertCircle size={18} />
+            <span className="text-sm">{erroAtivo}</span>
+          </div>
+        )}
 
-    {dados.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-20 border rounded-xl text-muted-foreground">
-        <ClipboardList size={32} className="mb-3 opacity-40" />
-        <p className="text-sm">Nenhuma resposta encontrada</p>
-      </div>
-    ) : (
-      <div className="space-y-5">
-        {dados.map((registro, index) => {
-          const isOpen = aberto === registro.id
+        {dados.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 border border-gray-200 dark:border-white/10 rounded-xl text-gray-500 dark:text-gray-400">
+            <ClipboardList size={32} className="mb-3 opacity-40" />
+            <p className="text-sm">Nenhuma resposta encontrada</p>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {dados.map((registro, index) => {
+              const isOpen = aberto === registro.id
 
-          return (
-            <div
-              key={registro.id}
-              className="border rounded-xl bg-card transition hover:shadow-sm"
-            >
-              <button
-                onClick={() => setAberto(isOpen ? null : registro.id)}
-                className="w-full flex items-center justify-between p-5 text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-muted">
-                    <User size={18} />
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">
-                      Resposta #{dados.length - index}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Calendar size={13} />
-                      {new Date(registro.createdAt).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                </div>
-
-                <ChevronDown
-                  size={20}
-                  className={`transition-transform ${
-                    isOpen ? "rotate-180 text-primary" : "text-muted-foreground"
-                  }`}
-                />
-              </button>
-
-              {isOpen && (
-                <div className="border-t px-5 pb-5 pt-4 space-y-4">
-                  {registro.respostas.map((item, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg border bg-muted/30 p-4 flex flex-col gap-3"
-                    >
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Pergunta
-                        </p>
-
-                        <p className="text-sm font-medium">
-                          {formatarPergunta(item)}
-                        </p>
+              return (
+                <div
+                  key={registro.id}
+                  className="border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#111e22] transition hover:border-emerald-400/40"
+                >
+                  <button
+                    onClick={() => setAberto(isOpen ? null : registro.id)}
+                    className="w-full flex items-center justify-between p-5 text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-[#0B161A] border border-gray-200 dark:border-white/10">
+                        <User size={18} />
                       </div>
 
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Resposta
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          Resposta #{dados.length - index}
                         </p>
 
-                        <span className="inline-block text-sm font-medium bg-background border px-3 py-1.5 rounded-md">
-                          {formatarResposta(item)}
-                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          <Calendar size={13} />
+                          {new Date(registro.createdAt).toLocaleDateString("pt-BR")}
+                        </p>
                       </div>
                     </div>
-                  ))}
+
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform ${
+                        isOpen
+                          ? "rotate-180 text-emerald-500"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    />
+                  </button>
+
+                  {isOpen && (
+                    <div className="border-t border-gray-200 dark:border-white/10 px-5 pb-5 pt-4 space-y-4">
+                      {registro.respostas.map((item, i) => (
+                        <div
+                          key={i}
+                          className="rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B161A] p-4 flex flex-col gap-3"
+                        >
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                              Pergunta
+                            </p>
+
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {formatarPergunta(item)}
+                            </p>
+                          </div>
+
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                              Resposta
+                            </p>
+
+                            <span className="inline-block text-sm font-medium bg-white dark:bg-[#111e22] border border-gray-200 dark:border-white/10 px-3 py-1.5 rounded-md">
+                              {formatarResposta(item)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        )}
+
       </div>
-    )}
-  </div>
-</div>
+    </div>
   )
 }

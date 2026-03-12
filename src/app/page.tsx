@@ -54,7 +54,7 @@ export default function HomePage() {
         {/* Sobre */}
         <section
           id="como-funciona"
-          className="border-t border-border/40 px-4 py-20 text-center bg-accent/5"
+          className="border-t border-border-/40 px-4 py-20 text-center bg-accent/5"
         >
           <div className="mx-auto max-w-5xl space-y-12">
             <h2 className="text-3xl font-black uppercase sm:text-4xl">
@@ -76,7 +76,7 @@ export default function HomePage() {
                   desc: "Resultados organizados permitem decisões baseadas em dados reais.",
                 },
               ].map((item, i) => (
-                <div key={i} className="p-8 rounded-[2rem] bg-card border border-border/50 shadow-sm hover:border-primary/50 transition-colors">
+                <div key={i} className="p-8 rounded-[2rem] bg-card border border-border-/50 shadow-sm hover:border-primary/50 transition-colors">
                   <h3 className="text-xl font-black uppercase  mb-3 text-primary">
                     {item.step}
                   </h3>
@@ -90,7 +90,7 @@ export default function HomePage() {
         </section>
 
         {/* Benefícios */}
-        <section className="border-t border-border/40 px-4 py-20 text-center">
+        <section className="border-t border-border-/40 px-4 py-20 text-center">
           <div className="mx-auto max-w-4xl space-y-8">
             <h2 className="text-3xl font-black uppercase ">
               Benefícios <span className="text-primary">Premium</span>
@@ -112,7 +112,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-border/40 py-10 text-center">
+      <footer className="border-t border-border-/40 py-10 text-center">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">
           Dikma © 2026 - Gestão de Feedback Inteligente
         </p>
