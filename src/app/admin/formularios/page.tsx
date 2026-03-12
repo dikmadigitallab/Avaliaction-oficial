@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -24,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import { FormBuilder } from "@/components/form-builder";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus,
   ClipboardList,
   Star,
   AlignLeft,
@@ -42,14 +42,15 @@ export default function FormulariosPage() {
   const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const session = useSession();
- const id = session.data?.user?.id
+  const { data: session } = useSession();
+  const id = session?.user?.id;
 
   useEffect(() => {
+    if (!id) return;
+
     async function fetchForms() {
       try {
         const res = await fetch(`/api/forms?userId=${id}`);
-
         if (!res.ok) throw new Error();
 
         const data = await res.json();
@@ -60,7 +61,7 @@ export default function FormulariosPage() {
     }
 
     fetchForms();
-  }, []);
+  }, [id]);
 
   const buildFormUrl = (formId: string) => {
     return `${window.location.origin}/responder/${formId}`;
@@ -87,18 +88,17 @@ export default function FormulariosPage() {
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
-  //deletar com id
-  const handleDelete = async (id?: string) => {
-    if (!id) return;
+  const handleDelete = async (formId?: string) => {
+    if (!formId) return;
 
     try {
-      const res = await fetch(`/api/forms?id=${id}`, {
+      const res = await fetch(`/api/forms?id=${formId}`, {
         method: "DELETE",
       });
 
       if (!res.ok) throw new Error();
 
-      setForms((prev) => prev.filter((form) => form.id !== id));
+      setForms((prev) => prev.filter((form) => form.id !== formId));
       setDeleteTarget(null);
 
       toast.success("Formulario excluido.");
@@ -116,12 +116,15 @@ export default function FormulariosPage() {
         </p>
 
         <div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 300 }}
             className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
             onClick={() => setOpen(true)}
           >
             Novo Form
-          </button>
+          </motion.button>
 
           {open && <FormBuilder />}
         </div>
@@ -145,15 +148,15 @@ export default function FormulariosPage() {
             .sort(
               (a, b) =>
                 new Date(b.updatedAt).getTime() -
-                new Date(a.updatedAt).getTime(),
+                new Date(a.updatedAt).getTime()
             )
             .map((form) => {
               const ratingCount = form.questions.filter(
-                (q) => q.type === "avaliacao",
+                (q) => q.type === "avaliacao"
               ).length;
 
               const textCount = form.questions.filter(
-                (q) => q.type === "texto",
+                (q) => q.type === "texto"
               ).length;
 
               return (
@@ -202,7 +205,10 @@ export default function FormulariosPage() {
                     </div>
 
                     <div className="flex items-center gap-2 pt-2 border-t">
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -211,46 +217,64 @@ export default function FormulariosPage() {
                         className="text-red-600"
                       >
                         <Trash2Icon className="h-4 w-4 cursor-pointer" />
-                      </button>
+                      </motion.button>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopyLink(form.id);
-                        }}
-                        title="Copiar link"
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyLink(form.id);
+                          }}
+                          title="Copiar link"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShareEmail(form.id);
-                        }}
-                        title="Compartilhar por email"
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <Mail className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareEmail(form.id);
+                          }}
+                          title="Compartilhar por email"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShareWhatsApp(form.id);
-                        }}
-                        title="Compartilhar no WhatsApp"
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareWhatsApp(form.id);
+                          }}
+                          title="Compartilhar no WhatsApp"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
                     </div>
                   </CardContent>
                 </Card>
@@ -272,14 +296,20 @@ export default function FormulariosPage() {
               desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleDelete(deleteTarget?.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
+            <motion.div whileTap={{ scale: 0.9 }}>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            </motion.div>
+
+            <motion.div whileTap={{ scale: 0.9 }}>
+              <AlertDialogAction
+                onClick={() => handleDelete(deleteTarget?.id)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </motion.div>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
