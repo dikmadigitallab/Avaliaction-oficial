@@ -52,27 +52,25 @@ export default function FormViewPage() {
   const [name, setName] = useState("")
 
   useEffect(() => {
- async function fetchForm() {
-  try {
-    const res = await fetch(`/api/forms/details?id=${formId}`)
-    if (!res.ok) throw new Error()
+    async function fetchForm() {
+      try {
+        const res = await fetch(`/api/forms/details?id=${formId}`)
+        if (!res.ok) throw new Error()
 
-    const data = await res.json()
+        const data = await res.json()
 
-    setForm(data)
-    setName(data.name)
-  } catch {
-    toast.error("Erro ao carregar formulario.")
-  } finally {
-    setLoading(false)
-  }
-}
+        setForm(data)
+        setName(data.name)
+      } catch {
+        toast.error("Erro ao carregar formulario.")
+      } finally {
+        setLoading(false)
+      }
+    }
 
     if (formId) fetchForm()
   }, [formId])
 
-
-  
   const handleDelete = async () => {
     try {
       const res = await fetch(`/api/forms?id=${formId}`, {
@@ -82,7 +80,7 @@ export default function FormViewPage() {
       if (!res.ok) throw new Error()
 
       toast.success("Formulario removido.")
-      router.push("/administracao/formularios")
+      router.push("/admin/formularios")
     } catch {
       toast.error("Erro ao deletar formulario.")
     }
@@ -138,12 +136,16 @@ export default function FormViewPage() {
     window.open(`https://wa.me/?text=${text}`, "_blank")
   }
 
+  const handlePreview = () => {
+    window.open(`/admin/formularios/preview/${formId}`, "_blank")
+  }
+
   if (loading) return <div>Carregando...</div>
   if (!form) return <div>Formulario nao encontrado.</div>
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-4xl w-full">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Button
           variant="ghost"
           className="gap-2"
@@ -153,19 +155,7 @@ export default function FormViewPage() {
           Voltar
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() =>
-              window.open(`/admin/formularios/preview/${formId}`, "_blank")
-            }
-          >
-            <Eye className="h-4 w-4" />
-            Previsualizar
-          </Button>
-
-
+        <div className="flex flex-wrap items-center gap-2">
           {!editing ? (
             <Button
               variant="outline"
@@ -197,18 +187,21 @@ export default function FormViewPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="w-full">
+        <CardHeader className="w-full">
           {editing ? (
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="w-full break-all"
             />
           ) : (
-            <CardTitle className="text-xl">{form.name}</CardTitle>
+            <CardTitle className="text-xl break-all whitespace-normal leading-snug w-full">
+              {form.name}
+            </CardTitle>
           )}
 
-          <CardDescription>
+          <CardDescription className="break-words">
             Criado em{" "}
             {new Date(form.createdAt).toLocaleDateString("pt-BR")}
           </CardDescription>
@@ -226,11 +219,9 @@ export default function FormViewPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-base">
-            Link de compartilhamento
-          </CardTitle>
+          <CardTitle className="text-base">Link de compartilhamento</CardTitle>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
@@ -238,21 +229,13 @@ export default function FormViewPage() {
             {buildLink()}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleCopy}
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleCopy}>
               <Copy className="h-4 w-4" />
               Copiar
             </Button>
 
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleEmail}
-            >
+            <Button variant="outline" className="gap-2" onClick={handleEmail}>
               <Mail className="h-4 w-4" />
               Email
             </Button>
@@ -265,23 +248,29 @@ export default function FormViewPage() {
               <MessageCircle className="h-4 w-4" />
               WhatsApp
             </Button>
+
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={handlePreview}
+            >
+              <Eye className="h-4 w-4" />
+              Previsualizar
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-base">Perguntas</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {form.questions.map((q, index) => (
-            <div
-              key={q.id}
-              className="border rounded-lg p-4 space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">
+            <div key={q.id} className="border rounded-lg p-4 space-y-2">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <span className="font-medium break-words w-full">
                   {index + 1}. {q.title}
                 </span>
 
@@ -290,7 +279,7 @@ export default function FormViewPage() {
                 )}
               </div>
 
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground break-words">
                 Tipo: {q.type}
               </div>
             </div>
