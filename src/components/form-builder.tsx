@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
@@ -59,6 +60,8 @@ export function FormBuilder({
   initialQuestions = [],
   submitLabel = "Salvar formulario",
 }: FormBuilderProps) {
+
+  const router = useRouter()
 
   const [formName, setFormName] = useState(initialName)
   const [questions, setQuestions] = useState<FormQuestion[]>(initialQuestions)
@@ -179,9 +182,10 @@ export function FormBuilder({
 
       await res.json()
 
-      alert("Formulário salvo com sucesso")
-      setFormName("")
-      setQuestions([])
+      toast.success("Formulário salvo com sucesso")
+
+      router.push("/admin/formularios")
+
     } catch (error: any) {
       toast.error(error.message || "Erro ao salvar formulário")
     }

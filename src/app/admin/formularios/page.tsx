@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/card"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,10 +20,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { FormBuilder } from "@/components/form-builder";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { FormBuilder } from "@/components/form-builder"
+import { Badge } from "@/components/ui/badge"
 import {
   ClipboardList,
   Star,
@@ -33,79 +33,84 @@ import {
   MessageCircle,
   ExternalLink,
   Trash2Icon,
-} from "lucide-react";
-import type { FormTemplate } from "@/lib/types";
-import { toast } from "sonner";
+  Eye,
+} from "lucide-react"
+import type { FormTemplate } from "@/lib/types"
+import { toast } from "sonner"
 
 export default function FormulariosPage() {
-  const [forms, setForms] = useState<FormTemplate[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null);
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
-  const id = session?.user?.id;
+  const [forms, setForms] = useState<FormTemplate[]>([])
+  const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null)
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const { data: session } = useSession()
+  const id = session?.user?.id
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
 
     async function fetchForms() {
       try {
-        const res = await fetch(`/api/forms?userId=${id}`);
-        if (!res.ok) throw new Error();
+        const res = await fetch(`/api/forms?userId=${id}`)
+        if (!res.ok) throw new Error()
 
-        const data = await res.json();
-        setForms(data);
+        const data = await res.json()
+        setForms(data)
       } catch {
-        toast.error("Erro ao carregar formularios.");
+        toast.error("Erro ao carregar formularios.")
       }
     }
 
-    fetchForms();
-  }, [id]);
+    fetchForms()
+  }, [id])
 
   const buildFormUrl = (formId: string) => {
-    return `${window.location.origin}/responder/${formId}`;
-  };
+    return `${window.location.origin}/responder/${formId}`
+  }
 
   const handleCopyLink = (formId: string) => {
-    const url = buildFormUrl(formId);
+    const url = buildFormUrl(formId)
     navigator.clipboard
       .writeText(url)
       .then(() => toast.success("Link copiado."))
-      .catch(() => toast.error("Nao foi possivel copiar o link."));
-  };
+      .catch(() => toast.error("Nao foi possivel copiar o link."))
+  }
 
   const handleShareEmail = (formId: string) => {
-    const url = buildFormUrl(formId);
-    const subject = encodeURIComponent("Formulario para resposta");
-    const body = encodeURIComponent(`Acesse o formulario pelo link:\n\n${url}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
-  };
+    const url = buildFormUrl(formId)
+    const subject = encodeURIComponent("Formulario para resposta")
+    const body = encodeURIComponent(`Acesse o formulario pelo link:\n\n${url}`)
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank")
+  }
 
   const handleShareWhatsApp = (formId: string) => {
-    const url = buildFormUrl(formId);
-    const text = encodeURIComponent(`Responda o formulario pelo link:\n${url}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
-  };
+    const url = buildFormUrl(formId)
+    const text = encodeURIComponent(`Responda o formulario pelo link:\n${url}`)
+    window.open(`https://wa.me/?text=${text}`, "_blank")
+  }
+
+  const handlePreview = (formId: string) => {
+    window.open(`/admin/formularios/preview/${formId}`, "_blank")
+  }
 
   const handleDelete = async (formId?: string) => {
-    if (!formId) return;
+    if (!formId) return
 
     try {
       const res = await fetch(`/api/forms?id=${formId}`, {
         method: "DELETE",
-      });
+      })
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error()
 
-      setForms((prev) => prev.filter((form) => form.id !== formId));
-      setDeleteTarget(null);
+      setForms((prev) => prev.filter((form) => form.id !== formId))
+      setDeleteTarget(null)
 
-      toast.success("Formulario excluido.");
+      toast.success("Formulario excluido.")
     } catch {
-      toast.error("Erro ao excluir formulario.");
+      toast.error("Erro ao excluir formulario.")
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -153,27 +158,28 @@ export default function FormulariosPage() {
             .map((form) => {
               const ratingCount = form.questions.filter(
                 (q) => q.type === "avaliacao"
-              ).length;
+              ).length
 
               const textCount = form.questions.filter(
                 (q) => q.type === "texto"
-              ).length;
+              ).length
 
               return (
                 <Card
                   key={form.id}
                   className="group cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 focus-within:ring-2 focus-within:ring-primary"
                   onClick={() => {
-                    router.push(`/admin/formularios/${form.id}`);
+                    router.push(`/admin/formularios/${form.id}`)
                   }}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <CardTitle className="text-base truncate flex items-center gap-2">
-                          {form.name}
-                          <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="min-w-0 w-full">
+                        <CardTitle className="text-base flex items-start gap-2 leading-snug break-all max-w-full whitespace-normal">
+                          <span className="break-all">{form.name}</span>
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-[2px]" />
                         </CardTitle>
+
                         <CardDescription className="text-xs">
                           Criado em{" "}
                           {new Date(form.createdAt).toLocaleDateString("pt-BR")}
@@ -211,74 +217,73 @@ export default function FormulariosPage() {
                         transition={{ type: "spring", stiffness: 300 }}
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(form);
+                          e.stopPropagation()
+                          setDeleteTarget(form)
                         }}
                         className="text-red-600"
                       >
                         <Trash2Icon className="h-4 w-4 cursor-pointer" />
                       </motion.button>
 
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopyLink(form.id);
+                            e.stopPropagation()
+                            handleCopyLink(form.id)
                           }}
-                          title="Copiar link"
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
                       </motion.div>
 
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleShareEmail(form.id);
+                            e.stopPropagation()
+                            handleShareEmail(form.id)
                           }}
-                          title="Compartilhar por email"
                         >
                           <Mail className="h-4 w-4" />
                         </Button>
                       </motion.div>
 
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleShareWhatsApp(form.id);
+                            e.stopPropagation()
+                            handleShareWhatsApp(form.id)
                           }}
-                          title="Compartilhar no WhatsApp"
                         >
                           <MessageCircle className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+
+                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handlePreview(form.id)
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
                         </Button>
                       </motion.div>
                     </div>
                   </CardContent>
                 </Card>
-              );
+              )
             })}
         </div>
       )}
@@ -287,32 +292,31 @@ export default function FormulariosPage() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-lg w-full">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir formulario</AlertDialogTitle>
-            <AlertDialogDescription>
+
+            <AlertDialogDescription className="break-words leading-relaxed">
               Tem certeza que deseja excluir o formulario{" "}
-              <strong>{deleteTarget?.name}</strong>? Esta acao nao pode ser
-              desfeita.
+              <strong className="block break-all mt-1">
+                {deleteTarget?.name}
+              </strong>
+              Esta acao nao pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter>
-            <motion.div whileTap={{ scale: 0.9 }}>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            </motion.div>
+          <AlertDialogFooter className="flex gap-2 justify-end">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
 
-            <motion.div whileTap={{ scale: 0.9 }}>
-              <AlertDialogAction
-                onClick={() => handleDelete(deleteTarget?.id)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Excluir
-              </AlertDialogAction>
-            </motion.div>
+            <AlertDialogAction
+              onClick={() => handleDelete(deleteTarget?.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }
