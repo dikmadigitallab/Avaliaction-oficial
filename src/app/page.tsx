@@ -12,7 +12,7 @@ export default function HomePage() {
     // Adicionamos dark:bg-[#020817] ou dark:bg-[#0C0C0E] para bater com o fundo da imagem
     <div className="flex min-h-screen flex-col bg-background transition-colors duration-500">
       <SiteHeader />
-   
+
       <main className="flex-1">
         {/* Hero */}
         <section className="flex flex-col items-center gap-6 px-4 pt-20 pb-16 text-center">
