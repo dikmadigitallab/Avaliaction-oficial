@@ -8,6 +8,9 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background transition-colors duration-500">
       <SiteHeader />
 
+      alert ("codigo andre")
+
+
       <main className="flex-1">
         {/* Hero */}
         <section className="flex flex-col items-center gap-6 px-4 pt-20 pb-16 text-center">
