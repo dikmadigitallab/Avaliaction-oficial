@@ -4,11 +4,11 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
 
 type QuestionType =
   | "TEXT"
   | "AVALIACAO"
-  | "BOOLEAN"
   | "CHECKBOX"
   | "RADIO"
   | "LIST"
@@ -19,7 +19,7 @@ interface Question {
   type: QuestionType
   required: boolean
   order: number
-  options?: string[]
+  itens?: string[]
 }
 
 interface Form {
@@ -74,105 +74,137 @@ export default function FormPreviewPage() {
     })
   }
 
-  if (!form) return <p>Carregando formulário...</p>
+  if (!form)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        Carregando formulário...
+      </div>
+    )
 
   return (
-    <div className="flex justify-center items-start min-h-screen p-6 bg-background text-foreground">
-    <div
-      className="w-full max-w-3xl bg-card text-card-foreground p-8 rounded-lg shadow-lg flex flex-col gap-6 overflow-y-auto border border-border animate-scale-in"
-      style={{ maxHeight: "90vh" }}
-    >
-      <h1 className="text-3xl font-bold text-center text-primary">
-        {form.name}
-      </h1>
-  
-      <p className="text-center text-sm text-muted-foreground">
-        Pré-visualização do formulário
-      </p>
-  
-      {form.questions.map((q) => (
-        <div key={q.id} className="flex flex-col gap-2">
-          <label className="font-medium text-foreground">
-            {q.pergunta} {q.required && "*"}
-          </label>
-  
-          {q.type === "TEXT" && (
-            <Input
-              disabled
-              value={answers[q.id] || ""}
-              onChange={(e) => handleChange(q.id, e.target.value)}
-              className="bg-input border-border text-foreground"
-            />
-          )}
-  
-          {(q.type === "BOOLEAN" || q.type === "LIST") && q.options && (
-            <select
-              disabled
-              value={answers[q.id] || ""}
-              onChange={(e) => handleChange(q.id, e.target.value)}
-              className="bg-input border border-border rounded-md p-2 text-foreground"
-            >
-              <option value="">Selecione</option>
-              {q.options.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          )}
-  
-          {q.type === "AVALIACAO" && (
-            <div className="flex gap-2">
-              {Array.from({ length: q.options?.length || 5 }).map((_, i) => {
-                const value = i + 1
-                const ativo = (answers[q.id] || 0) >= value
-  
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled
-                    className={`text-3xl ${
-                      ativo ? "text-primary" : "text-muted-foreground"
+    <div className="min-h-screen bg-gray-900 flex justify-center py-10 px-4">
+      <div className="w-full max-w-3xl flex flex-col gap-6">
+        
+        <div className="bg-[#06292b] border border-[#0e3f41] rounded-2xl p-6 text-center shadow-lg">
+          <h1 className="text-3xl font-semibold text-white">{form.name}</h1>
+          <p className="text-sm text-gray-400 mt-2">
+            Pré-visualização do formulário
+          </p>
+        </div>
+
+        {form.questions.map((q, index) => (
+          <motion.div
+            key={q.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-[#06292b] border border-[#0e3f41] rounded-2xl p-5 shadow-md flex flex-col gap-4"
+          >
+            <div className="flex justify-between items-start">
+              <span className="text-lg text-gray-200">
+                {index + 1}. {q.pergunta}
+              </span>
+              {q.required && (
+                <span className="text-xs text-red-400">Obrigatório</span>
+              )}
+            </div>
+
+            {q.type === "TEXT" && (
+              <Input
+                value={answers[q.id] || ""}
+                onChange={(e) => handleChange(q.id, e.target.value)}
+                className="h-12 rounded-xl bg-[#031b1c] border border-[#0e3f41]"
+              />
+            )}
+
+            {q.type === "AVALIACAO" && (
+              <div className="flex flex-wrap gap-3">
+                {(q.itens && q.itens.length > 0
+                  ? q.itens
+                  : ["Ótimo", "Bom", "Regular", "Ruim"]
+                ).map((op) => (
+                  <label
+                    key={op}
+                    className={`px-4 py-2 rounded-xl border cursor-pointer transition text-sm
+                    ${
+                      answers[q.id] === op
+                        ? "bg-[#18c2a4] text-black border-[#18c2a4] border"
+                        : "bg-[#031b1c] border-[#0e3f41] border hover:border-[#18c2a4]"
                     }`}
                   >
-                    ★
-                  </button>
-                )
-              })}
-            </div>
-          )}
-  
-          {q.type === "RADIO" && q.options && (
-            <div className="flex flex-col gap-2">
-              {q.options.map((opt) => (
-                <label key={opt} className="flex gap-2 items-center">
-                  <input type="radio" disabled className="accent-primary" />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          )}
-  
-          {q.type === "CHECKBOX" && q.options && (
-            <div className="flex flex-col gap-2">
-              {q.options.map((opt) => (
-                <label key={opt} className="flex gap-2 items-center">
-                  <input type="checkbox" disabled className="accent-primary" />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          )}
+                    <input
+                      type="radio"
+                      name={q.id}
+                      value={op}
+                      checked={answers[q.id] === op}
+                      onChange={() => handleChange(q.id, op)}
+                      className="hidden"
+                    />
+                    {op}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {q.type === "RADIO" && q.itens && (
+              <div className="flex flex-col gap-2">
+                {q.itens.map((opt) => (
+                  <label key={opt} className="flex gap-2 items-center">
+                    <input
+                      type="radio"
+                      name={q.id}
+                      value={opt}
+                      checked={answers[q.id] === opt}
+                      onChange={() => handleChange(q.id, opt)}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {q.type === "CHECKBOX" && q.itens && (
+              <div className="flex flex-col gap-2">
+                {q.itens.map((opt) => (
+                  <label key={opt} className="flex gap-2 items-center">
+                    <input
+                      type="checkbox"
+                      value={opt}
+                      checked={(answers[q.id] || []).includes(opt)}
+                      onChange={() => handleCheckboxChange(q.id, opt)}
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {q.type === "LIST" && q.itens && (
+              <select
+                value={answers[q.id] || ""}
+                onChange={(e) => handleChange(q.id, e.target.value)}
+                className="bg-[#031b1c] border border-[#0e3f41] text-white p-2 rounded-xl h-12"
+              >
+                <option value="">Selecione...</option>
+                {q.itens.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            )}
+          </motion.div>
+        ))}
+
+        <div className="flex justify-center pt-4">
+          <Button
+            disabled
+            className="px-10 py-5 text-lg rounded-2xl bg-gray-600"
+          >
+            Enviar respostas
+          </Button>
         </div>
-      ))}
-  
-      <div className="flex justify-center mt-4">
-        <Button disabled className="px-8 py-3">
-          Enviar respostas
-        </Button>
       </div>
     </div>
-  </div>
   )
 }
