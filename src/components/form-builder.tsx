@@ -44,6 +44,7 @@ export interface FormQuestion {
   id: string
   text: string
   type: QuestionType
+  required: boolean
   maxScore?: number
   options?: string[]
   itens?: string[]
@@ -69,6 +70,7 @@ export function FormBuilder({
 
   const [newQuestionText, setNewQuestionText] = useState("")
   const [newQuestionType, setNewQuestionType] = useState<QuestionType | "">("")
+  const [newRequired, setNewRequired] = useState(false)
   const [valores, setValores] = useState<string>("Ótimo, Bom, Regular, Ruim")
 
   const [newOptions, setNewOptions] = useState<string[]>([])
@@ -80,6 +82,7 @@ export function FormBuilder({
   const resetNewQuestion = () => {
     setNewQuestionText("")
     setNewQuestionType("")
+    setNewRequired(false)
     setValores("")
     setNewOptions([])
     setNewOptionText("")
@@ -118,6 +121,7 @@ export function FormBuilder({
       id: crypto.randomUUID(),
       text: newQuestionText.trim(),
       type: newQuestionType,
+      required: newRequired,
     }
 
     if (newQuestionType === "AVALIACAO") {
@@ -170,7 +174,7 @@ export function FormBuilder({
                 : q.type === "CHECKBOX" || q.type === "RADIO"
                 ? q.options || []
                 : [],
-            required: true,
+            required: q.required,
             order: index,
           })),
         }),
@@ -236,253 +240,265 @@ export function FormBuilder({
   }
 
   return (
-<div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
 
-<Card>
-<CardHeader>
-<CardTitle>Informacoes do formulario</CardTitle>
-<CardDescription>Defina o nome do formulario.</CardDescription>
-</CardHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informacoes do formulario</CardTitle>
+          <CardDescription>Defina o nome do formulario.</CardDescription>
+        </CardHeader>
 
-<CardContent>
-<div className="flex flex-col gap-2">
-<Label>Nome do formulario *</Label>
-<Input
-value={formName}
-onChange={(e) => setFormName(e.target.value)}
-/>
-</div>
-</CardContent>
-</Card>
+        <CardContent>
+          <div className="flex flex-col gap-2">
+            <Label>Nome do formulario *</Label>
+            <Input
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-<Card>
-<CardHeader>
+      <Card>
+        <CardHeader>
 
-<div className="flex items-center justify-between">
-<CardTitle>Perguntas</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Perguntas</CardTitle>
 
-{!isAddingQuestion && (
-<Button
-variant="outline"
-size="sm"
-onClick={() => setIsAddingQuestion(true)}
->
-<Plus className="h-4 w-4 mr-2" />
-Adicionar pergunta
-</Button>
-)}
+            {!isAddingQuestion && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddingQuestion(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar pergunta
+              </Button>
+            )}
 
-</div>
-</CardHeader>
+          </div>
+        </CardHeader>
 
-<CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-4">
 
-{questions.map((q, idx) => (
-<div
-key={q.id}
-className="flex items-start gap-3 rounded-lg border p-4"
->
+          {questions.map((q, idx) => (
+            <div
+              key={q.id}
+              className="flex items-start gap-3 rounded-lg border p-4"
+            >
 
-<div className="font-semibold">
-{idx + 1}
-</div>
+              <div className="font-semibold">
+                {idx + 1}
+              </div>
 
-<div className="flex-1">
+              <div className="flex-1">
 
-<p className="text-sm font-medium">
-{q.text}
-</p>
+                <p className="text-sm font-medium">
+                  {q.text}
+                </p>
 
-<div className="mt-2 flex items-center gap-2 flex-wrap">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
 
-{renderTypeBadge(q.type)}
+                  {renderTypeBadge(q.type)}
 
-{q.type === "AVALIACAO" && q.maxScore && (
-<Badge variant="outline" className="text-xs">
-Nota max: {q.maxScore}
-</Badge>
-)}
+                  <Badge variant={q.required ? "default" : "secondary"} className="text-xs">
+                    {q.required ? "Obrigatoria" : "Opcional"}
+                  </Badge>
 
-{q.options?.map((opt, i) => (
-<Badge key={i} variant="outline" className="text-xs">
-{opt}
-</Badge>
-))}
+                  {q.type === "AVALIACAO" && q.maxScore && (
+                    <Badge variant="outline" className="text-xs">
+                      Nota max: {q.maxScore}
+                    </Badge>
+                  )}
 
-{q.itens?.map((opt, i) => (
-<Badge key={i} variant="outline" className="text-xs">
-{opt}
-</Badge>
-))}
+                  {q.options?.map((opt, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {opt}
+                    </Badge>
+                  ))}
 
-</div>
-</div>
+                  {q.itens?.map((opt, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {opt}
+                    </Badge>
+                  ))}
 
-<Button
-variant="ghost"
-size="icon"
-onClick={() => handleRemoveQuestion(q.id)}
->
-<Trash2 className="h-4 w-4" />
-</Button>
+                </div>
+              </div>
 
-</div>
-))}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleRemoveQuestion(q.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
 
-{isAddingQuestion && (
-<>
+            </div>
+          ))}
 
-{questions.length > 0 && <Separator />}
+          {isAddingQuestion && (
+            <>
 
-<div className="border-dashed border p-4 rounded-lg">
+              {questions.length > 0 && <Separator />}
 
-<div className="flex flex-col gap-4">
+              <div className="border-dashed border p-4 rounded-lg">
 
-<div>
-<Label>Texto *</Label>
-<Input
-value={newQuestionText}
-onChange={(e) => setNewQuestionText(e.target.value)}
-/>
-</div>
+                <div className="flex flex-col gap-4">
 
-<div>
-<Label>Tipo *</Label>
+                  <div>
+                    <Label>Texto *</Label>
+                    <Input
+                      value={newQuestionText}
+                      onChange={(e) => setNewQuestionText(e.target.value)}
+                    />
+                  </div>
 
-<Select
-value={newQuestionType}
-onValueChange={(v) =>
-setNewQuestionType(v as QuestionType)
-}
->
+                  <div>
+                    <Label>Tipo *</Label>
 
-<SelectTrigger>
-<SelectValue placeholder="Selecione" />
-</SelectTrigger>
+                    <Select
+                      value={newQuestionType}
+                      onValueChange={(v) =>
+                        setNewQuestionType(v as QuestionType)
+                      }
+                    >
 
-<SelectContent>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
 
-<SelectItem value="TEXT">
-Texto
-</SelectItem>
+                      <SelectContent>
 
-<SelectItem value="AVALIACAO">
-Avaliacao
-</SelectItem>
+                        <SelectItem value="TEXT">
+                          Texto
+                        </SelectItem>
 
-<SelectItem value="CHECKBOX">
-Checkbox
-</SelectItem>
+                        <SelectItem value="AVALIACAO">
+                          Avaliacao
+                        </SelectItem>
 
-<SelectItem value="RADIO">
-Radio
-</SelectItem>
+                        <SelectItem value="CHECKBOX">
+                          Checkbox
+                        </SelectItem>
 
-<SelectItem value="LIST">
-Lista
-</SelectItem>
+                        <SelectItem value="RADIO">
+                          Radio
+                        </SelectItem>
 
-</SelectContent>
-</Select>
+                        <SelectItem value="LIST">
+                          Lista
+                        </SelectItem>
 
-</div>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-{(
-newQuestionType === "CHECKBOX" ||
-newQuestionType === "RADIO" ||
-newQuestionType === "LIST"
-) && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={newRequired}
+                      onChange={(e) => setNewRequired(e.target.checked)}
+                    />
+                    <Label>Obrigatoria</Label>
+                  </div>
 
-<div className="flex flex-col gap-2">
+                  {(
+                    newQuestionType === "CHECKBOX" ||
+                    newQuestionType === "RADIO" ||
+                    newQuestionType === "LIST"
+                  ) && (
 
-<Label>Opcoes *</Label>
+                    <div className="flex flex-col gap-2">
 
-<div className="flex gap-2">
+                      <Label>Opcoes *</Label>
 
-<Input
-value={newOptionText}
-onChange={(e) =>
-setNewOptionText(e.target.value)
-}
-placeholder="Digite uma opcao"
-/>
+                      <div className="flex gap-2">
 
-<Button
-size="sm"
-type="button"
-onClick={handleAddOption}
->
-Adicionar
-</Button>
+                        <Input
+                          value={newOptionText}
+                          onChange={(e) =>
+                            setNewOptionText(e.target.value)
+                          }
+                          placeholder="Digite uma opcao"
+                        />
 
-</div>
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={handleAddOption}
+                        >
+                          Adicionar
+                        </Button>
 
-<div className="flex gap-2 flex-wrap mt-2">
+                      </div>
 
-{newOptions.map((opt, idx) => (
-<Badge
-key={idx}
-variant="secondary"
-className="gap-1 text-xs cursor-pointer"
-onClick={() =>
-setNewOptions((prev) =>
-prev.filter((_, i) => i !== idx)
-)
-}
->
+                      <div className="flex gap-2 flex-wrap mt-2">
 
-{opt}
-<Trash2 className="h-3 w-3" />
+                        {newOptions.map((opt, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="gap-1 text-xs cursor-pointer"
+                            onClick={() =>
+                              setNewOptions((prev) =>
+                                prev.filter((_, i) => i !== idx)
+                              )
+                            }
+                          >
 
-</Badge>
-))}
+                            {opt}
+                            <Trash2 className="h-3 w-3" />
 
-</div>
-</div>
-)}
+                          </Badge>
+                        ))}
 
-<div className="flex gap-2">
+                      </div>
+                    </div>
+                  )}
 
-<Button
-size="sm"
-onClick={handleAddQuestion}
->
-Adicionar
-</Button>
+                  <div className="flex gap-2">
 
-<Button
-variant="ghost"
-size="sm"
-onClick={resetNewQuestion}
->
-Cancelar
-</Button>
+                    <Button
+                      size="sm"
+                      onClick={handleAddQuestion}
+                    >
+                      Adicionar
+                    </Button>
 
-</div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetNewQuestion}
+                    >
+                      Cancelar
+                    </Button>
 
-</div>
-</div>
-</>
-)}
+                  </div>
 
-</CardContent>
-</Card>
+                </div>
+              </div>
+            </>
+          )}
 
-<div className="flex justify-end">
+        </CardContent>
+      </Card>
 
-<Button
-size="lg"
-className="gap-2"
-onClick={handleSubmit}
->
+      <div className="flex justify-end">
 
-<Save className="h-4 w-4" />
-{submitLabel}
+        <Button
+          size="lg"
+          className="gap-2"
+          onClick={handleSubmit}
+        >
 
-</Button>
+          <Save className="h-4 w-4" />
+          {submitLabel}
 
-</div>
+        </Button>
 
-</div>
+      </div>
+
+    </div>
   )
 }
