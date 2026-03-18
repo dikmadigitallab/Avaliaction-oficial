@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { SiteHeader } from "@/components/site-header"
 
+alert('codigo oscar')
 export default function HomePage() {
   return (
     // bg-background garante que a página siga o tema (claro/escuro) definido no seu layout
