@@ -50,6 +50,7 @@ export default function FormViewPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState("")
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     async function fetchForm() {
@@ -179,13 +180,42 @@ export default function FormViewPage() {
           <Button
             variant="destructive"
             className="gap-2"
-            onClick={handleDelete}
+            onClick={() => setConfirmDelete(true)}
           >
             <Trash2 className="h-4 w-4" />
             Deletar
           </Button>
         </div>
       </div>
+
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-[#06292b] rounded-xl p-6 w-full max-w-sm space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Confirmar exclusão
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Tem certeza que deseja deletar este formulario?
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setConfirmDelete(false)}
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card className="w-full">
         <CardHeader className="w-full">
