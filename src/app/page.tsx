@@ -5,9 +5,6 @@ import { SiteHeader } from "@/components/site-header"
 export default function HomePage() {
 
 
-  alert('osdcar')
-  alert ('andre')
- 
   return (
     // bg-background garante que a página siga o tema (claro/escuro) definido no seu layout
     // Adicionamos dark:bg-[#020817] ou dark:bg-[#0C0C0E] para bater com o fundo da imagem
