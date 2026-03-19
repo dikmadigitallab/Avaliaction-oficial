@@ -61,7 +61,6 @@ export function FormBuilder({
   initialQuestions = [],
   submitLabel = "Salvar formulario",
 }: FormBuilderProps) {
-
   const router = useRouter()
 
   const [formName, setFormName] = useState(initialName)
@@ -83,7 +82,7 @@ export function FormBuilder({
     setNewQuestionText("")
     setNewQuestionType("")
     setNewRequired(false)
-    setValores("")
+    setValores("Ótimo, Bom, Regular, Ruim")
     setNewOptions([])
     setNewOptionText("")
     setIsAddingQuestion(false)
@@ -125,7 +124,7 @@ export function FormBuilder({
     }
 
     if (newQuestionType === "AVALIACAO") {
-      question.maxScore = Number(valores)
+      question.options = ["Ótimo", "Bom", "Regular", "Ruim"]
     }
 
     if (newQuestionType === "CHECKBOX" || newQuestionType === "RADIO") {
@@ -145,55 +144,57 @@ export function FormBuilder({
     setQuestions((prev) => prev.filter((q) => q.id !== id))
   }
 
-  const handleSubmit = async () => {
-    if (!formName.trim()) {
-      toast.error("Informe o nome do formulário.")
-      return
-    }
-
-    if (questions.length === 0) {
-      toast.error("Adicione pelo menos uma pergunta.")
-      return
-    }
-
-    try {
-      const res = await fetch("/api/forms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formName.trim(),
-          userId: id,
-          anonymous: true,
-          cpf_list: [],
-          questions: questions.map((q, index) => ({
-            pergunta: q.text,
-            type: q.type,
-            itens:
-              q.type === "LIST"
-                ? q.itens || []
-                : q.type === "CHECKBOX" || q.type === "RADIO"
-                ? q.options || []
-                : [],
-            required: q.required,
-            order: index,
-          })),
-        }),
-      })
-
-      if (!res.ok) {
-        throw new Error("Erro ao salvar formulário")
-      }
-
-      await res.json()
-
-      toast.success("Formulário salvo com sucesso")
-
-      router.push("/admin/formularios")
-
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao salvar formulário")
-    }
+const handleSubmit = async () => {
+  if (!formName.trim()) {
+    toast.error("Informe o nome do formulário.")
+    return
   }
+
+  if (questions.length === 0) {
+    toast.error("Adicione pelo menos uma pergunta.")
+    return
+  }
+
+  try {
+    const res = await fetch("/api/forms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: formName.trim(),
+        userId: id,
+        anonymous: true,
+        cpf_list: [],
+        questions: questions.map((q, index) => ({
+          pergunta: q.text,
+          type: q.type,
+          itens:
+            q.type === "LIST"
+              ? q.itens || []
+              : q.type === "CHECKBOX" || q.type === "RADIO"
+              ? q.options || []
+              : q.type === "AVALIACAO"
+              ? q.options || []
+              : [],
+          required: q.required,
+          order: index,
+        })),
+      }),
+    })
+
+    if (!res.ok) {
+      throw new Error("Erro ao salvar formulário")
+    }
+
+    await res.json()
+
+    toast.success("Formulário salvo com sucesso")
+
+    router.refresh()
+    router.push("/admin/formularios")
+  } catch (error: any) {
+    toast.error(error.message || "Erro ao salvar formulário")
+  }
+}
 
   const renderTypeBadge = (type: QuestionType) => {
     switch (type) {
@@ -204,7 +205,6 @@ export function FormBuilder({
             Texto
           </Badge>
         )
-
       case "AVALIACAO":
         return (
           <Badge variant="secondary" className="gap-1 text-xs">
@@ -212,7 +212,6 @@ export function FormBuilder({
             Avaliacao
           </Badge>
         )
-
       case "CHECKBOX":
         return (
           <Badge variant="secondary" className="gap-1 text-xs">
@@ -220,7 +219,6 @@ export function FormBuilder({
             Checkbox
           </Badge>
         )
-
       case "RADIO":
         return (
           <Badge variant="secondary" className="gap-1 text-xs">
@@ -228,7 +226,6 @@ export function FormBuilder({
             Radio
           </Badge>
         )
-
       case "LIST":
         return (
           <Badge variant="secondary" className="gap-1 text-xs">
@@ -261,22 +258,7 @@ export function FormBuilder({
 
       <Card>
         <CardHeader>
-
-          <div className="flex items-center justify-between">
-            <CardTitle>Perguntas</CardTitle>
-
-            {!isAddingQuestion && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAddingQuestion(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar pergunta
-              </Button>
-            )}
-
-          </div>
+          <CardTitle>Perguntas</CardTitle>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
@@ -286,30 +268,21 @@ export function FormBuilder({
               key={q.id}
               className="flex items-start gap-3 rounded-lg border p-4"
             >
-
               <div className="font-semibold">
                 {idx + 1}
               </div>
 
               <div className="flex-1">
-
                 <p className="text-sm font-medium">
                   {q.text}
                 </p>
 
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-
                   {renderTypeBadge(q.type)}
 
                   <Badge variant={q.required ? "default" : "secondary"} className="text-xs">
                     {q.required ? "Obrigatoria" : "Opcional"}
                   </Badge>
-
-                  {q.type === "AVALIACAO" && q.maxScore && (
-                    <Badge variant="outline" className="text-xs">
-                      Nota max: {q.maxScore}
-                    </Badge>
-                  )}
 
                   {q.options?.map((opt, i) => (
                     <Badge key={i} variant="outline" className="text-xs">
@@ -322,7 +295,6 @@ export function FormBuilder({
                       {opt}
                     </Badge>
                   ))}
-
                 </div>
               </div>
 
@@ -333,17 +305,25 @@ export function FormBuilder({
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
-
             </div>
           ))}
 
+          {!isAddingQuestion && (
+            <Button
+              variant="outline"
+              onClick={() => setIsAddingQuestion(true)}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar pergunta
+            </Button>
+          )}
+
           {isAddingQuestion && (
             <>
-
-              {questions.length > 0 && <Separator />}
+              <Separator />
 
               <div className="border-dashed border p-4 rounded-lg">
-
                 <div className="flex flex-col gap-4">
 
                   <div>
@@ -363,33 +343,16 @@ export function FormBuilder({
                         setNewQuestionType(v as QuestionType)
                       }
                     >
-
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
 
                       <SelectContent>
-
-                        <SelectItem value="TEXT">
-                          Texto
-                        </SelectItem>
-
-                        <SelectItem value="AVALIACAO">
-                          Avaliacao
-                        </SelectItem>
-
-                        <SelectItem value="CHECKBOX">
-                          Checkbox
-                        </SelectItem>
-
-                        <SelectItem value="RADIO">
-                          Radio
-                        </SelectItem>
-
-                        <SelectItem value="LIST">
-                          Lista
-                        </SelectItem>
-
+                        <SelectItem value="TEXT">Texto</SelectItem>
+                        <SelectItem value="AVALIACAO">Avaliacao</SelectItem>
+                        <SelectItem value="CHECKBOX">Checkbox</SelectItem>
+                        <SelectItem value="RADIO">Radio</SelectItem>
+                        <SelectItem value="LIST">Lista</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -408,19 +371,15 @@ export function FormBuilder({
                     newQuestionType === "RADIO" ||
                     newQuestionType === "LIST"
                   ) && (
-
                     <div className="flex flex-col gap-2">
-
                       <Label>Opcoes *</Label>
 
                       <div className="flex gap-2">
-
                         <Input
                           value={newOptionText}
                           onChange={(e) =>
                             setNewOptionText(e.target.value)
                           }
-                          placeholder="Digite uma opcao"
                         />
 
                         <Button
@@ -430,39 +389,29 @@ export function FormBuilder({
                         >
                           Adicionar
                         </Button>
-
                       </div>
 
                       <div className="flex gap-2 flex-wrap mt-2">
-
                         {newOptions.map((opt, idx) => (
                           <Badge
                             key={idx}
                             variant="secondary"
-                            className="gap-1 text-xs cursor-pointer"
+                            className="cursor-pointer"
                             onClick={() =>
                               setNewOptions((prev) =>
                                 prev.filter((_, i) => i !== idx)
                               )
                             }
                           >
-
-                            {opt}
-                            <Trash2 className="h-3 w-3" />
-
+                            {opt} <Trash2 className="h-3 w-3" />
                           </Badge>
                         ))}
-
                       </div>
                     </div>
                   )}
 
                   <div className="flex gap-2">
-
-                    <Button
-                      size="sm"
-                      onClick={handleAddQuestion}
-                    >
+                    <Button size="sm" onClick={handleAddQuestion}>
                       Adicionar
                     </Button>
 
@@ -473,7 +422,6 @@ export function FormBuilder({
                     >
                       Cancelar
                     </Button>
-
                   </div>
 
                 </div>
@@ -485,18 +433,10 @@ export function FormBuilder({
       </Card>
 
       <div className="flex justify-end">
-
-        <Button
-          size="lg"
-          className="gap-2"
-          onClick={handleSubmit}
-        >
-
+        <Button size="lg" className="gap-2" onClick={handleSubmit}>
           <Save className="h-4 w-4" />
           {submitLabel}
-
         </Button>
-
       </div>
 
     </div>
