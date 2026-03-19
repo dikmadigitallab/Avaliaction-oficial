@@ -9,6 +9,8 @@ interface ItemResposta {
   pergunta?: string
   Resposta?: any
   resposta?: any
+  options?: string[]
+  type?: string
 }
 
 interface Registro {
@@ -16,6 +18,8 @@ interface Registro {
   createdAt: string
   respostas: ItemResposta[]
 }
+
+const OPCOES_AVALIACAO_PADRAO = ["Ótimo", "Bom", "Regular", "Ruim"]
 
 export default function RespostasPage() {
   const params = useParams()
@@ -46,7 +50,13 @@ export default function RespostasPage() {
       const dadosTratados: Registro[] = (Array.isArray(json) ? json : []).map((item: any) => ({
         id: item.id || Math.random().toString(36).slice(2),
         createdAt: item.createdAt || new Date().toISOString(),
-        respostas: Array.isArray(item.respostas) ? item.respostas : []
+        respostas: Array.isArray(item.respostas)
+          ? item.respostas.map((r: any) => ({
+              ...r,
+              options: r.options || r.opcoes || [],
+              type: r.type || r.tipo || ""
+            }))
+          : []
       }))
 
       setDados(dadosTratados)
@@ -61,9 +71,10 @@ export default function RespostasPage() {
     if (mounted) carregarRespostas()
   }, [mounted, carregarRespostas])
 
-  const formatarPergunta = (item: ItemResposta) => item.Pergunta ?? item.pergunta ?? "Sem título"
+  const formatarPergunta = (item: ItemResposta) =>
+    item.Pergunta ?? item.pergunta ?? "Sem título"
 
-  const formatarResposta = (item: ItemResposta) => {
+  const getResposta = (item: ItemResposta) => {
     const val = item.Resposta ?? item.resposta
     if (val === null || val === undefined || val === "") return "-"
     if (typeof val === "object") {
@@ -77,8 +88,8 @@ export default function RespostasPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#EFF6F4] dark:bg-[#0B161A] text-black dark:text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
+      <div className="min-h-screen flex items-center justify-center bg-[#EFF6F4] dark:bg-[#0B161A]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
       </div>
     )
   }
@@ -91,20 +102,17 @@ export default function RespostasPage() {
           <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
             Avaliações recebidas
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Respostas enviadas para este formulário
-          </p>
         </header>
 
         {erroAtivo && (
-          <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+          <div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-600">
             <AlertCircle size={18} />
             <span className="text-sm">{erroAtivo}</span>
           </div>
         )}
 
         {dados.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border border-gray-200 dark:border-white/10 rounded-xl text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 border rounded-xl">
             <ClipboardList size={32} className="mb-3 opacity-40" />
             <p className="text-sm">Nenhuma resposta encontrada</p>
           </div>
@@ -114,26 +122,19 @@ export default function RespostasPage() {
               const isOpen = aberto === registro.id
 
               return (
-                <div
-                  key={registro.id}
-                  className="border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-[#111e22] transition hover:border-emerald-400/40"
-                >
+                <div key={registro.id} className="border rounded-xl bg-white dark:bg-[#111e22]">
                   <button
                     onClick={() => setAberto(isOpen ? null : registro.id)}
-                    className="w-full flex items-center justify-between p-5 text-left"
+                    className="w-full flex items-center justify-between p-5"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-[#0B161A] border border-gray-200 dark:border-white/10">
-                        <User size={18} />
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <User size={18} />
+                      <div>
+                        <p className="text-sm font-medium">
                           Resposta #{dados.length - index}
                         </p>
-
-                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                          <Calendar size={13} />
+                        <p className="text-xs text-gray-500">
+                          <Calendar size={13} className="inline mr-1" />
                           {new Date(registro.createdAt).toLocaleDateString("pt-BR")}
                         </p>
                       </div>
@@ -141,42 +142,59 @@ export default function RespostasPage() {
 
                     <ChevronDown
                       size={20}
-                      className={`transition-transform ${
-                        isOpen
-                          ? "rotate-180 text-emerald-500"
-                          : "text-gray-500 dark:text-gray-400"
-                      }`}
+                      className={isOpen ? "rotate-180 text-emerald-500" : ""}
                     />
                   </button>
 
                   {isOpen && (
-                    <div className="border-t border-gray-200 dark:border-white/10 px-5 pb-5 pt-4 space-y-4">
-                      {registro.respostas.map((item, i) => (
-                        <div
-                          key={i}
-                          className="rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B161A] p-4 flex flex-col gap-3"
-                        >
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                              Pergunta
-                            </p>
+                    <div className="border-t px-5 pb-5 pt-4 space-y-4">
+                      {registro.respostas.map((item, i) => {
+                        const resposta = getResposta(item)
 
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        const isAvaliacao =
+                          item.type === "avaliacao" ||
+                          ["Ótimo", "Bom", "Regular", "Ruim"].includes(resposta)
+
+                        const opcoes =
+                          item.options && item.options.length > 0
+                            ? item.options
+                            : OPCOES_AVALIACAO_PADRAO
+
+                        return (
+                          <div key={i} className="p-4 border rounded-lg flex flex-col gap-3">
+                            <p className="text-sm font-medium">
                               {formatarPergunta(item)}
                             </p>
-                          </div>
 
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                              Resposta
-                            </p>
+                            {isAvaliacao ? (
+                              <div className="flex gap-2 flex-wrap">
+                                {opcoes.map((opt, idx) => {
+                                  const selecionado = resposta === String(opt)
 
-                            <span className="inline-block text-sm font-medium bg-white dark:bg-[#111e22] border border-gray-200 dark:border-white/10 px-3 py-1.5 rounded-md">
-                              {formatarResposta(item)}
-                            </span>
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`px-4 py-2 rounded-lg border text-sm transition
+                                        ${
+                                          selecionado
+                                            ? "bg-green-500 text-white border-green-500"
+                                            : "bg-transparent border-gray-300 dark:border-white/20 text-gray-400"
+                                        }
+                                      `}
+                                    >
+                                      {opt}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-sm border px-3 py-1.5 rounded-md">
+                                {resposta}
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
