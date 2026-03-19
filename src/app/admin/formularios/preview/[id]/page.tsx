@@ -76,18 +76,20 @@ export default function FormPreviewPage() {
 
   if (!form)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#EFF6F4] dark:bg-[#0B161A] text-gray-700 dark:text-white">
         Carregando formulário...
       </div>
     )
 
   return (
-    <div className="min-h-screen bg-gray-900 flex justify-center py-10 px-4">
+    <div className="min-h-screen bg-[#EFF6F4] dark:bg-[#0B161A] flex justify-center py-10 px-4">
       <div className="w-full max-w-3xl flex flex-col gap-6">
-        
-        <div className="bg-[#06292b] border border-[#0e3f41] rounded-2xl p-6 text-center shadow-lg">
-          <h1 className="text-3xl font-semibold text-white">{form.name}</h1>
-          <p className="text-sm text-gray-400 mt-2">
+
+        <div className="bg-white dark:bg-[#06292b] border border-gray-200 dark:border-[#0e3f41] rounded-2xl p-6 text-center shadow-sm">
+          <h1 className="text-3xl font-semibold text-gray-800 dark:text-white">
+            {form.name}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             Pré-visualização do formulário
           </p>
         </div>
@@ -98,14 +100,14 @@ export default function FormPreviewPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-[#06292b] border border-[#0e3f41] rounded-2xl p-5 shadow-md flex flex-col gap-4"
+            className="bg-white dark:bg-[#06292b] border border-gray-200 dark:border-[#0e3f41] rounded-2xl p-5 shadow-sm flex flex-col gap-4"
           >
             <div className="flex justify-between items-start">
-              <span className="text-lg text-gray-200">
+              <span className="text-lg text-gray-800 dark:text-gray-200">
                 {index + 1}. {q.pergunta}
               </span>
               {q.required && (
-                <span className="text-xs text-red-400">Obrigatório</span>
+                <span className="text-xs text-red-500">Obrigatório</span>
               )}
             </div>
 
@@ -113,7 +115,7 @@ export default function FormPreviewPage() {
               <Input
                 value={answers[q.id] || ""}
                 onChange={(e) => handleChange(q.id, e.target.value)}
-                className="h-12 rounded-xl bg-[#031b1c] border border-[#0e3f41]"
+                className="h-12 rounded-xl bg-gray-50 dark:bg-[#031b1c] border border-gray-300 dark:border-[#0e3f41] text-gray-800 dark:text-white focus:border-[#18c2a4] focus:ring-0"
               />
             )}
 
@@ -128,8 +130,8 @@ export default function FormPreviewPage() {
                     className={`px-4 py-2 rounded-xl border cursor-pointer transition text-sm
                     ${
                       answers[q.id] === op
-                        ? "bg-[#18c2a4] text-black border-[#18c2a4] border"
-                        : "bg-[#031b1c] border-[#0e3f41] border hover:border-[#18c2a4]"
+                        ? "bg-[#18c2a4] text-black border-[#18c2a4]"
+                        : "bg-gray-50 dark:bg-[#031b1c] border-gray-300 dark:border-[#0e3f41] hover:border-[#18c2a4]"
                     }`}
                   >
                     <input
@@ -147,7 +149,7 @@ export default function FormPreviewPage() {
             )}
 
             {q.type === "RADIO" && q.itens && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-gray-800 dark:text-white">
                 {q.itens.map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
@@ -164,7 +166,7 @@ export default function FormPreviewPage() {
             )}
 
             {q.type === "CHECKBOX" && q.itens && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-gray-800 dark:text-white">
                 {q.itens.map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
@@ -183,7 +185,7 @@ export default function FormPreviewPage() {
               <select
                 value={answers[q.id] || ""}
                 onChange={(e) => handleChange(q.id, e.target.value)}
-                className="bg-[#031b1c] border border-[#0e3f41] text-white p-2 rounded-xl h-12"
+                className="bg-gray-50 dark:bg-[#031b1c] border border-gray-300 dark:border-[#0e3f41] text-gray-800 dark:text-white p-2 rounded-xl h-12 focus:border-[#18c2a4]"
               >
                 <option value="">Selecione...</option>
                 {q.itens.map((opt) => (
@@ -199,7 +201,7 @@ export default function FormPreviewPage() {
         <div className="flex justify-center pt-4">
           <Button
             disabled
-            className="px-10 py-5 text-lg rounded-2xl bg-gray-600"
+            className="px-10 py-5 text-lg rounded-2xl bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white"
           >
             Enviar respostas
           </Button>
