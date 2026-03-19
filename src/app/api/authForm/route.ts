@@ -74,7 +74,8 @@ export async function GET(req: NextRequest) {
       where: { id: formId },
       select: {
         id: true,
-        cpf_list: true
+        cpf_list: true,
+        name:true
       }
     })
 
