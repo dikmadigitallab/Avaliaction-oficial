@@ -8,8 +8,6 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background transition-colors duration-500">
       <SiteHeader />
 
-      alert ("codigo andre")
-
 
       <main className="flex-1">
         {/* Hero */}
