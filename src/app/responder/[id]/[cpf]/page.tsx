@@ -14,6 +14,7 @@ type QuestionType =
   | "CHECKBOX"
   | "RADIO"
   | "LIST"
+  | "TITULO"
 
 interface Question {
   id: string
@@ -47,13 +48,11 @@ export default function FormResponsePage() {
     const loadForm = async () => {
       try {
         const res = await fetch(`/api/forms/details?id=${formId}`)
-
         if (!res.ok) {
           const err = await res.json()
           toast.error(err.error || "Erro ao carregar formulário")
           return
         }
-
         const data = await res.json()
         setForm(data)
       } catch {
@@ -74,14 +73,12 @@ export default function FormResponsePage() {
   const handleCheckboxChange = (questionId: string, option: string) => {
     setAnswers((prev) => {
       const current = Array.isArray(prev[questionId]) ? prev[questionId] : []
-
       if (current.includes(option)) {
         return {
           ...prev,
           [questionId]: current.filter((o: string) => o !== option),
         }
       }
-
       return {
         ...prev,
         [questionId]: [...current, option],
@@ -93,6 +90,8 @@ export default function FormResponsePage() {
     if (!form) return
 
     for (const q of form.questions) {
+      if (q.type === "TITULO") continue
+
       if (
         q.required &&
         (answers[q.id] === undefined ||
@@ -106,13 +105,14 @@ export default function FormResponsePage() {
 
     try {
       setSending(true)
-
-      const respostasFormatadas = form.questions.map((q) => ({
-        Pergunta: q.pergunta,
-        Resposta: Array.isArray(answers[q.id])
-          ? answers[q.id].join(", ")
-          : answers[q.id] ?? "",
-      }))
+      const respostasFormatadas = form.questions
+        .filter((q) => q.type !== "TITULO")
+        .map((q) => ({
+          Pergunta: q.pergunta,
+          Resposta: Array.isArray(answers[q.id])
+            ? answers[q.id].join(", ")
+            : answers[q.id] ?? "",
+        }))
 
       const res = await fetch(`/api/forms/respostas`, {
         method: "POST",
@@ -165,95 +165,108 @@ export default function FormResponsePage() {
           {form.name}
         </motion.h1>
 
-        {form.questions.map((q, index) => (
-          <motion.div
-            key={q.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }}
-            className="flex flex-col gap-3"
-          >
-            <label className="text-lg text-gray-200">
-              {q.pergunta} {q.required && "*"}
-            </label>
+        {form.questions.map((q, index) => {
+          const isTitle = q.type === "TITULO"
 
-            {q.type === "TEXT" && (
-              <Input
-                value={answers[q.id] || ""}
-                onChange={(e) => handleChange(q.id, e.target.value)}
-                className="h-12 rounded-xl bg-[#031b1c] border border-[#0e3f41] focus:border-[#18c2a4] focus:ring-2 focus:ring-[#18c2a4]/40"
-              />
-            )}
-
-            {q.type === "AVALIACAO" && (
-              <div className="flex flex-wrap gap-3">
-                {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
-                  <label
-                    key={op}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0e3f41] bg-[#031b1c] cursor-pointer hover:border-[#18c2a4] transition"
-                  >
-                    <input
-                      type="radio"
-                      name={q.id}
-                      value={op}
-                      checked={answers[q.id] === op}
-                      onChange={() => handleChange(q.id, op)}
-                    />
-                    <span>{op}</span>
+          return (
+            <motion.div
+              key={q.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08 }}
+              className="flex flex-col gap-3"
+            >
+              {isTitle ? (
+                /* SOMENTE O TITULO ALTERADO: FONTE MAIOR E NEGRITO */
+                <h2 className="text-2xl font-black uppercase tracking-tight mt-4">
+                  {q.pergunta}
+                </h2>
+              ) : (
+                <>
+                  <label className="text-lg text-gray-200">
+                    {q.pergunta} {q.required && "*"}
                   </label>
-                ))}
-              </div>
-            )}
 
-            {q.type === "RADIO" && q.itens && (
-              <div className="flex flex-col gap-2">
-                {q.itens.map((opt) => (
-                  <label key={opt} className="flex gap-2 items-center">
-                    <input
-                      type="radio"
-                      name={q.id}
-                      value={opt}
-                      checked={answers[q.id] === opt}
-                      onChange={() => handleChange(q.id, opt)}
+                  {q.type === "TEXT" && (
+                    <Input
+                      value={answers[q.id] || ""}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      className="h-12 rounded-xl bg-[#031b1c] border border-[#0e3f41] focus:border-[#18c2a4] focus:ring-2 focus:ring-[#18c2a4]/40 text-white"
                     />
-                    {opt}
-                  </label>
-                ))}
-              </div>
-            )}
+                  )}
 
-            {q.type === "CHECKBOX" && q.itens && (
-              <div className="flex flex-col gap-2">
-                {q.itens.map((opt) => (
-                  <label key={opt} className="flex gap-2 items-center">
-                    <input
-                      type="checkbox"
-                      value={opt}
-                      checked={(answers[q.id] || []).includes(opt)}
-                      onChange={() => handleCheckboxChange(q.id, opt)}
-                    />
-                    {opt}
-                  </label>
-                ))}
-              </div>
-            )}
+                  {q.type === "AVALIACAO" && (
+                    <div className="flex flex-wrap gap-3">
+                      {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
+                        <label
+                          key={op}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#0e3f41] bg-[#031b1c] cursor-pointer hover:border-[#18c2a4] transition"
+                        >
+                          <input
+                            type="radio"
+                            name={q.id}
+                            value={op}
+                            checked={answers[q.id] === op}
+                            onChange={() => handleChange(q.id, op)}
+                          />
+                          <span>{op}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
 
-            {q.type === "LIST" && q.itens && (
-              <select
-                value={answers[q.id] || ""}
-                onChange={(e) => handleChange(q.id, e.target.value)}
-                className="bg-[#031b1c] border border-[#0e3f41] text-white p-2 rounded-xl h-12"
-              >
-                <option value="">Selecione...</option>
-                {q.itens.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            )}
-          </motion.div>
-        ))}
+                  {q.type === "RADIO" && q.itens && (
+                    <div className="flex flex-col gap-2">
+                      {q.itens.map((opt) => (
+                        <label key={opt} className="flex gap-2 items-center">
+                          <input
+                            type="radio"
+                            name={q.id}
+                            value={opt}
+                            checked={answers[q.id] === opt}
+                            onChange={() => handleChange(q.id, opt)}
+                          />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {q.type === "CHECKBOX" && q.itens && (
+                    <div className="flex flex-col gap-2">
+                      {q.itens.map((opt) => (
+                        <label key={opt} className="flex gap-2 items-center">
+                          <input
+                            type="checkbox"
+                            value={opt}
+                            checked={(answers[q.id] || []).includes(opt)}
+                            onChange={() => handleCheckboxChange(q.id, opt)}
+                          />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {q.type === "LIST" && q.itens && (
+                    <select
+                      value={answers[q.id] || ""}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      className="bg-[#031b1c] border border-[#0e3f41] text-white p-2 rounded-xl h-12"
+                    >
+                      <option value="">Selecione...</option>
+                      {q.itens.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </>
+              )}
+            </motion.div>
+          )
+        })}
 
         <div className="flex justify-center pt-6">
           <motion.div
