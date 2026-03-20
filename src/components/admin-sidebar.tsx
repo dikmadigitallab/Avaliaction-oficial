@@ -28,7 +28,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Card, CardAction, CardDescription } from "./ui/card"
 
 const NAV_ITEMS = [
-  //{ href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard" },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard" },
   //{ href: "/admin/feedbacks", label: "Feedbacks", icon: MessageSquare, permission: "feedbacks" },
   { href: "/admin/formularios", label: "Formulários", icon: ClipboardList, permission: "formularios" },
   //{ href: "/admin/logs", label: "Logs de Acesso", icon: FileText, permission: "logs" },
