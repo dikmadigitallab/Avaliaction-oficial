@@ -30,10 +30,15 @@ export default function RespostasPage() {
   const [aberto, setAberto] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [erroAtivo, setErroAtivo] = useState<string | null>(null)
+  const [observacao, setObservacao] = useState("nenhuma observação")
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+
+
+
 
   const carregarRespostas = useCallback(async () => {
     if (!FORM_ID) return
@@ -67,12 +72,18 @@ export default function RespostasPage() {
     }
   }, [FORM_ID])
 
+
+
   useEffect(() => {
     if (mounted) carregarRespostas()
   }, [mounted, carregarRespostas])
 
+
+
   const formatarPergunta = (item: ItemResposta) =>
     item.Pergunta ?? item.pergunta ?? "Sem título"
+
+
 
   const getResposta = (item: ItemResposta) => {
     const val = item.Resposta ?? item.resposta
@@ -83,6 +94,64 @@ export default function RespostasPage() {
     }
     return String(val)
   }
+
+useEffect(() => {
+  const fetchResposta = async () => {
+    try {
+      const res = await fetch(`/api/forms/respostas?formId=${FORM_ID}`)
+      const data = await res.json()
+
+      if (res.ok && data.length > 0) {
+        setObservacao(data[0].observacao || "")
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  if (FORM_ID) {
+    fetchResposta()
+  }
+}, [FORM_ID])
+
+
+
+  const handleSalvar = async () => {
+    if (!observacao.trim()) {
+      alert("Digite uma observação")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const res = await fetch("/api/forms/respostas", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          formId: FORM_ID,
+          observacao
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao salvar")
+      }
+
+      alert("Observação salva com sucesso")
+      setObservacao("")
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
 
   if (!mounted) return null
 
@@ -194,17 +263,29 @@ export default function RespostasPage() {
                           </div>
                         )
                       })}
-                      <div className="flex flex-col gap-1 text-sm border p-3 rounded-md">
+                      <div className="flex flex-col gap-2 text-sm border p-3 rounded-md">
                         <label htmlFor="observacao" className="font-medium">
                           Observação
                         </label>
+
                         <input
                           id="observacao"
                           name="observacao"
                           type="text"
+                          value={observacao}
+                          onChange={(e) => setObservacao(e.target.value)}
                           placeholder="Digite sua observação"
                           className="border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
                         />
+
+                        <button
+                          type="button"
+                          onClick={handleSalvar}
+                          disabled={loading}
+                          className="mt-2 bg-primary text-white rounded-md px-3 py-1.5 hover:opacity-90 transition disabled:opacity-50"
+                        >
+                          {loading ? "Salvando..." : "Salvar observação"}
+                        </button>
                       </div>
                     </div>
                   )}
