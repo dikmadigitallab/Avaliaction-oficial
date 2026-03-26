@@ -68,3 +68,37 @@ export async function GET(req: NextRequest) {
     )
   }
 }
+
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json()
+
+    const { respostaId, observacao } = body
+
+    if (!respostaId || !observacao) {
+      return NextResponse.json(
+        { error: "respostaId ou observacaoGestor ausentes" },
+        { status: 400 }
+      )
+    }
+
+    const respostaAtualizada = await prisma.resposta.update({
+      where: {
+        id: respostaId
+      },
+      data: {
+        observacao
+      }
+    })
+
+    return NextResponse.json(respostaAtualizada)
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: "Erro ao atualizar resposta" },
+      { status: 500 }
+    )
+  }
+}

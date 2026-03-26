@@ -52,10 +52,10 @@ export default function RespostasPage() {
         createdAt: item.createdAt || new Date().toISOString(),
         respostas: Array.isArray(item.respostas)
           ? item.respostas.map((r: any) => ({
-              ...r,
-              options: r.options || r.opcoes || [],
-              type: r.type || r.tipo || ""
-            }))
+            ...r,
+            options: r.options || r.opcoes || [],
+            type: r.type || r.tipo || ""
+          }))
           : []
       }))
 
@@ -175,10 +175,9 @@ export default function RespostasPage() {
                                     <div
                                       key={idx}
                                       className={`px-4 py-2 rounded-lg border text-sm transition
-                                        ${
-                                          selecionado
-                                            ? "bg-green-500 text-white border-green-500"
-                                            : "bg-transparent border-gray-300 dark:border-white/20 text-gray-400"
+                                        ${selecionado
+                                          ? "bg-green-500 text-white border-green-500"
+                                          : "bg-transparent border-gray-300 dark:border-white/20 text-gray-400"
                                         }
                                       `}
                                     >
@@ -195,6 +194,18 @@ export default function RespostasPage() {
                           </div>
                         )
                       })}
+                      <div className="flex flex-col gap-1 text-sm border p-3 rounded-md">
+                        <label htmlFor="observacao" className="font-medium">
+                          Observação
+                        </label>
+                        <input
+                          id="observacao"
+                          name="observacao"
+                          type="text"
+                          placeholder="Digite sua observação"
+                          className="border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -202,7 +213,6 @@ export default function RespostasPage() {
             })}
           </div>
         )}
-
       </div>
     </div>
   )
