@@ -55,6 +55,12 @@ export async function GET(req: NextRequest) {
       },
       orderBy: {
         createdAt: "desc"
+      },
+      select: {
+        id: true,
+        respostas: true,
+        observacao: true,
+        createdAt: true
       }
     })
 
@@ -74,18 +80,34 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json()
 
-    const { respostaId, observacao } = body
+    const { formId, observacao } = body
 
-    if (!respostaId || !observacao) {
+    if (!formId || !observacao) {
       return NextResponse.json(
-        { error: "respostaId ou observacaoGestor ausentes" },
+        { error: "formId ou observacao ausentes" },
         { status: 400 }
+      )
+    }
+
+    const resposta = await prisma.resposta.findFirst({
+      where: {
+        formId
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
+
+    if (!resposta) {
+      return NextResponse.json(
+        { error: "Nenhuma resposta encontrada para esse formulário" },
+        { status: 404 }
       )
     }
 
     const respostaAtualizada = await prisma.resposta.update({
       where: {
-        id: respostaId
+        id: resposta.id
       },
       data: {
         observacao
