@@ -293,13 +293,15 @@ export default function FormulariosPage() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
         <AlertDialogContent className="max-w-lg w-full">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir formulario</AlertDialogTitle>
+          <AlertDialogHeader> 
+            
+            <AlertDialogTitle>Excluir formulario</AlertDialogTitle> 
+            {deleteTarget?.name}
+
 
             <AlertDialogDescription className="break-words leading-relaxed">
               Tem certeza que deseja excluir o formulario{" "}
               <strong className="block break-all mt-1">
-                {deleteTarget?.name}
               </strong>
               Esta acao nao pode ser desfeita.
             </AlertDialogDescription>
