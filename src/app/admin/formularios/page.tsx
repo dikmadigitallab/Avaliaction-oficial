@@ -112,174 +112,123 @@ export default function FormulariosPage() {
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Formularios</h1>
-        <p className="text-sm text-muted-foreground">
-          Gerencie seus formularios de avaliacao.
-        </p>
-
+return (
+    <div className="space-y-8 mt-12 animate-fade-in">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.92 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            onClick={() => setOpen(true)}
-          >
-            Novo Form
-          </motion.button>
-
-          {open && <FormBuilder />}
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Formulários</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gerencie seus formulários de avaliação e acompanhe os resultados.
+          </p>
         </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:opacity-90"
+          onClick={() => setOpen(true)}
+        >
+          Novo Form
+        </motion.button>
       </div>
 
+      {open && <FormBuilder />}
+
+      {/* CONTENT SECTION */}
       {forms.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-            <ClipboardList className="h-12 w-12 text-muted-foreground/30" />
-            <p className="text-lg font-medium text-muted-foreground">
-              Nenhum formulario criado
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Crie seu primeiro formulario para comecar a coletar avaliacoes.
-            </p>
+        <Card className="border-dashed border-2 bg-muted/30">
+          <CardContent className="flex flex-col items-center gap-4 py-20 text-center">
+            <div className="p-4 rounded-full bg-background shadow-sm">
+              <ClipboardList className="h-10 w-10 text-muted-foreground/40" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-lg font-semibold text-foreground">Nenhum formulário criado</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Crie seu primeiro formulário para começar a coletar avaliações.
+              </p>
+            </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {forms
-            .sort(
-              (a, b) =>
-                new Date(b.updatedAt).getTime() -
-                new Date(a.updatedAt).getTime()
-            )
+            .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
             .map((form) => {
-              const ratingCount = form.questions.filter(
-                (q) => q.type === "avaliacao"
-              ).length
-
-              const textCount = form.questions.filter(
-                (q) => q.type === "texto"
-              ).length
+              const ratingCount = form.questions.filter((q) => q.type === "avaliacao").length
+              const textCount = form.questions.filter((q) => q.type === "texto").length
 
               return (
                 <Card
                   key={form.id}
-                  className="group cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 focus-within:ring-2 focus-within:ring-primary"
-                  onClick={() => {
-                    router.push(`/admin/formularios/${form.id}`)
-                  }}
+                  className="group relative flex flex-col justify-between overflow-hidden border-border bg-card transition-all hover:border-primary/50 hover:shadow-xl hover:shadow-black/5"
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 w-full">
-                        <CardTitle className="text-base flex items-start gap-2 leading-snug break-all max-w-full whitespace-normal">
-                          <span className="break-all">{form.name}</span>
-                          <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-[2px]" />
-                        </CardTitle>
-
-                        <CardDescription className="text-xs">
-                          Criado em{" "}
-                          {new Date(form.createdAt).toLocaleDateString("pt-BR")}
-                        </CardDescription>
-                      </div>
+                  {/* Área clicável para navegação */}
+                  <div 
+                    className="absolute inset-0 cursor-pointer z-0" 
+                    onClick={() => router.push(`/admin/formularios/${form.id}`)}
+                  />
+                  
+                  <CardHeader className="pb-4 relative z-10">
+                    <div className="space-y-1">
+                      <CardTitle className="text-base font-bold leading-tight group-hover:text-primary transition-colors flex items-center gap-2">
+                        <span className="line-clamp-1">{form.name}</span>
+                        <ExternalLink className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-100 transition-all" />
+                      </CardTitle>
+                      <CardDescription className="text-[10px] uppercase tracking-wider font-semibold opacity-60">
+                        Atualizado em {new Date(form.updatedAt).toLocaleDateString("pt-BR")}
+                      </CardDescription>
                     </div>
                   </CardHeader>
 
-                  <CardContent className="flex flex-col gap-4">
+                  <CardContent className="space-y-6 relative z-10">
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {form.questions.length} pergunta
-                        {form.questions.length !== 1 ? "s" : ""}
+                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-bold">
+                        {form.questions.length} Questões
                       </Badge>
-
                       {ratingCount > 0 && (
-                        <Badge variant="outline" className="gap-1 text-xs">
-                          <Star className="h-3 w-3" />
-                          {ratingCount} avaliacao
-                        </Badge>
-                      )}
-
-                      {textCount > 0 && (
-                        <Badge variant="outline" className="gap-1 text-xs">
-                          <AlignLeft className="h-3 w-3" />
-                          {textCount} texto
+                        <Badge variant="outline" className="gap-1 text-[10px] border-border/50 bg-background/50">
+                          <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                          {ratingCount} Avaliação
                         </Badge>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t">
+                    {/* ACTIONS ROW */}
+                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                      <div className="flex items-center gap-1">
+                        {[
+                          { icon: <Copy className="h-4 w-4" />, fn: handleCopyLink },
+                          { icon: <Mail className="h-4 w-4" />, fn: handleShareEmail },
+                          { icon: <MessageCircle className="h-4 w-4" />, fn: handleShareWhatsApp },
+                          { icon: <Eye className="h-4 w-4" />, fn: handlePreview },
+                        ].map((btn, index) => (
+                          <motion.div key={index} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                              onClick={(e) => { e.stopPropagation(); btn.fn(form.id); }}
+                            >
+                              {btn.icon}
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
+
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 300 }}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           setDeleteTarget(form)
                         }}
-                        className="text-red-600"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-destructive/10"
                       >
-                        <Trash2Icon className="h-4 w-4 cursor-pointer" />
+                        <Trash2Icon className="h-4 w-4" />
                       </motion.button>
-
-                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleCopyLink(form.id)
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleShareEmail(form.id)
-                          }}
-                        >
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleShareWhatsApp(form.id)
-                          }}
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handlePreview(form.id)
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
                     </div>
                   </CardContent>
                 </Card>
@@ -288,33 +237,26 @@ export default function FormulariosPage() {
         </div>
       )}
 
+      {/* ALERT DIALOG REFINADO */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="max-w-lg w-full">
-          <AlertDialogHeader> 
-            
-            <AlertDialogTitle>Excluir formulario</AlertDialogTitle> 
-            {deleteTarget?.name}
-
-
-            <AlertDialogDescription className="break-words leading-relaxed">
-              Tem certeza que deseja excluir o formulario{" "}
-              <strong className="block break-all mt-1">
-              </strong>
-              Esta acao nao pode ser desfeita.
+        <AlertDialogContent className="max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl">Excluir formulário?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Você está prestes a excluir <strong className="text-foreground break-all">{deleteTarget?.name}</strong>.
+              Essa ação é permanente e removerá todos os dados vinculados.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
-          <AlertDialogFooter className="flex gap-2 justify-end">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleDelete(deleteTarget?.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
-              Excluir
+              Excluir permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

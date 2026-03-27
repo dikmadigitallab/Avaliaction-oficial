@@ -8,39 +8,23 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import {
   LayoutDashboard,
-  MessageSquare,
-  FileText,
   Users,
-  BarChart3,
   LogOut,
   Menu,
   UserCircle,
   ClipboardList,
-  ShieldCheck,
-  Airplay,
   Mail,
-  CarIcon,
-  CreditCardIcon,
+  ChevronRight,
 } from "lucide-react"
 import { clearAdminSession } from "@/lib/store"
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Card, CardAction, CardDescription } from "./ui/card"
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard" },
-  //{ href: "/admin/feedbacks", label: "Feedbacks", icon: MessageSquare, permission: "feedbacks" },
   { href: "/admin/formularios", label: "Formulários", icon: ClipboardList, permission: "formularios" },
-  //{ href: "/admin/logs", label: "Logs de Acesso", icon: FileText, permission: "logs" },
   { href: "/admin/usuarios", label: "Usuários", icon: Users, permission: "Usuários" },
- // { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3, permission: "relatorios" },
-  //{ href: "/admin/administracao", label: "Administração", icon: ShieldCheck, permission: "administracao" },
-  //{ href: "/admin/colaboradores", label: "Colaboradores", icon: Users, permission: "administracao" },
-  //{ href: "/admin/exportacao", label: "Exportação", icon: Airplay, permission: "administracao" },
-
-  { href: "/admin/respostas/", label: "Respostas", icon: Mail, permission: "Respostas" },
- // { href: "/admin/cpf", label: "CPF", icon: CreditCardIcon, permission: "CPF" },
-
+  { href: "/admin/respostas", label: "Respostas", icon: Mail, permission: "Respostas" },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -51,99 +35,100 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   useEffect(() => {
     const session = localStorage.getItem("usuarioLogado")
     if (session) {
-      try {
-        setUserData(JSON.parse(session))
-      } catch (e) {
-        console.error("Erro ao carregar sessão:", e)
-      }
+      try { setUserData(JSON.parse(session)) } 
+      catch (e) { console.error("Erro ao carregar sessão:", e) }
     }
   }, [])
 
   const handleLogout = () => {
     clearAdminSession()
     localStorage.removeItem("usuarioLogado")
-    router.push("/admin")
+    router.push("/")
   }
 
   return (
-    <div className="flex h-full flex-col bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <div className="flex items-center gap-3 border-b border-gray-200 dark:border-white/10 px-5 py-5">
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+      {/* Logo Area */}
+      <div className="flex h-16 items-center px-6 border-b border-sidebar-border/50">
         <Image
           src="https://i.ibb.co/Z61BpdnN/download.png"
-          alt="Dikma"
-          width={100}
-          height={34}
-          className="h-8 w-auto dark:brightness-0 dark:invert"
+          alt="Logo"
+          width={90}
+          height={30}
+          className="h-7 w-auto dark:brightness-0 dark:invert transition-all hover:opacity-80"
           unoptimized
         />
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+        <p className="px-2 mb-2 text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/40">
+          Menu Principal
+        </p>
         {NAV_ITEMS.map((item) => {
           const isMestre = userData?.nome === "Administrador Mestre"
           const permissionValue = userData?.permissions?.[item.permission]
-
-          let canShow = false
-
-          if (isMestre) {
-            canShow = true
-          } else if (item.permission === "administracao") {
-            canShow = permissionValue === true
-          } else {
-            canShow = permissionValue === true || permissionValue === undefined
-          }
+          let canShow = isMestre || permissionValue === true || permissionValue === undefined
 
           if (!canShow) return null
-
-          const isActive = pathname === item.href
+          
+          const isActive = pathname.startsWith(item.href)
 
           return (
             <Link
-              key={item.href + item.label}
+              key={item.href}
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 relative",
                 isActive
-                  ? "bg-gray-200 text-gray-900 dark:bg-white/15 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                  : "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {item.label}
+              <item.icon className={cn(
+                "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50"
+              )} />
+              <span className="flex-1">{item.label}</span>
+              {isActive && (
+                <div className="absolute left-0 w-1 h-4 bg-sidebar-primary rounded-r-full" />
+              )}
+              <ChevronRight className={cn(
+                "h-3 w-3 opacity-0 transition-all -translate-x-2",
+                !isActive && "group-hover:opacity-40 group-hover:translate-x-0"
+              )} />
             </Link>
           )
         })}
       </nav>
 
-      <div className="border-t border-gray-200 dark:border-white/10 p-4">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-gray-800 dark:bg-white/15 dark:text-white">
-              <UserCircle className="h-5 w-5" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                {userData?.nome || "Carregando..."}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-white/50 truncate">
-                {userData?.nome === "Administrador Mestre" ? "Sistema" : "Administrador"}
-              </p>
-            </div>
+      {/* Footer / User Profile */}
+      <div className="mt-auto border-t border-sidebar-border p-4 bg-sidebar-accent/20">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-sidebar-background/50 border border-sidebar-border/50 shadow-sm mb-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/10 text-sidebar-primary ring-1 ring-sidebar-primary/20">
+            <UserCircle className="h-6 w-6" />
           </div>
 
-          <ThemeToggle className="text-gray-600 hover:bg-gray-200 hover:text-gray-900 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white" />
+          <div className="flex-1 min-w-0">
+            <p className="truncate text-xs font-semibold">
+              {userData?.nome || "Usuário"}
+            </p>
+            <p className="text-[10px] opacity-60 truncate uppercase tracking-tighter">
+              {userData?.nome === "Administrador Mestre" ? "Super Admin" : "Gestor"}
+            </p>
+          </div>
+          <ThemeToggle className="h-8 w-8 opacity-70 hover:opacity-100" />
         </div>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={handleLogout}
-          className="w-full justify-start gap-2 text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+          className="w-full justify-start gap-2 h-9 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
-          <LogOut className="h-4 w-4" />
-          Sair
+          <LogOut className="h-3.5 w-3.5" />
+          Sair do Sistema
         </Button>
       </div>
     </div>
@@ -155,45 +140,31 @@ export function AdminSidebar() {
 
   return (
     <>
-      <aside className="hidden lg:flex lg:w-60 lg:shrink-0">
-        <div className="fixed inset-y-0 left-0 z-30 w-60">
+      {/* Desktop Aside */}
+      <aside className="hidden lg:flex lg:w-64 lg:shrink-0">
+        <div className="fixed inset-y-0 left-0 z-30 w-64 shadow-xl shadow-black/5">
           <SidebarContent />
         </div>
       </aside>
 
-      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 px-4 lg:hidden">
-        <div className="flex items-center gap-3">
+      {/* Mobile Top Nav */}
+      <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 lg:hidden">
+        <div className="flex items-center gap-4">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-10 w-10 border border-sidebar-border">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
-
-            <SheetContent
-              side="left"
-              className="w-60 p-0 [&>button]:hidden bg-gray-100 dark:bg-[oklch(0.20_0.04_240)] border-none"
-            >
-              <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
+            <SheetContent side="left" className="w-64 p-0 border-none">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
               <SidebarContent onNavigate={() => setOpen(false)} />
             </SheetContent>
           </Sheet>
-
-          <Image
-            src="https://i.ibb.co/Z61BpdnN/download.png"
-            alt="Dikma"
-            width={80}
-            height={27}
-            className="h-6 w-auto dark:brightness-0 dark:invert"
-            unoptimized
-          />
+          <Image src="https://i.ibb.co/Z61BpdnN/download.png" alt="Logo" width={80} height={25} className="dark:invert" unoptimized />
         </div>
-
         <ThemeToggle />
       </div>
     </>
   )
 }
-
-//v0/dikmadigitallab-11654fc0
