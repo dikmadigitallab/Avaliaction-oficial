@@ -4,7 +4,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Cores mantidas conforme sua preferência */
   --background: oklch(0.98 0.005 180);
   --foreground: oklch(0.15 0.02 220);
   --card: oklch(1 0 0);
@@ -24,9 +23,8 @@
   --border: oklch(0.90 0.01 200);
   --input: oklch(0.96 0.005 200);
   --ring: oklch(0.60 0.13 175);
-  --radius: 0.75rem; /* Aumentado levemente para um look mais moderno/soft */
-  
-  /* Sidebar */
+  --radius: 0.75rem;
+
   --sidebar: oklch(0.985 0.002 200);
   --sidebar-foreground: oklch(0.17 0.02 220);
   --sidebar-primary: oklch(0.52 0.14 180);
@@ -62,15 +60,14 @@
 @theme inline {
   --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
   --font-mono: 'Geist Mono', monospace;
-  
-  /* Ajuste de escala tipográfica para UI/UX */
-  --text-xs: 0.8125rem;   /* 13px */
-  --text-sm: 0.9375rem;   /* 15px - Ideal para UI densa */
-  --text-base: 1.0625rem; /* 17px - Texto de leitura mais confortável */
-  --text-lg: 1.25rem;    /* 20px */
-  --text-xl: 1.5rem;     /* 24px */
-  --text-2xl: 2rem;      /* 32px */
-  
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -88,7 +85,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -105,25 +102,23 @@
 }
 
 @layer base {
-  * { 
-    @apply border-border outline-ring/50; 
+  * {
+    @apply border-border outline-ring/50;
   }
-  
+
   html {
-    /* Base de 16px garante que 1rem seja legível em qualquer dispositivo */
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  body { 
+  body {
     @apply bg-background text-foreground font-sans antialiased;
     font-size: var(--text-base);
-    line-height: 1.6; /* Aumenta o respiro entre linhas */
+    line-height: 1.6;
   }
 
-  /* Melhoria de hierarquia para cabeçalhos */
   h1, h2, h3, h4 {
     @apply font-bold tracking-tight text-foreground;
     line-height: 1.2;
@@ -133,7 +128,6 @@
   h2 { @apply text-2xl mb-4; }
   h3 { @apply text-xl mb-3; }
 
-  /* Transições suaves */
   html, body, * {
     transition-property: color, background-color, border-color, box-shadow, transform;
     transition-duration: 200ms;
@@ -141,7 +135,7 @@
   }
 }
 
-/* Animações */
+/* animações */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -164,7 +158,22 @@
 .animate-scale-in { animation: scale-in 0.4s ease-out both; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 
-/* Delays */
 .animate-delay-100 { animation-delay: 100ms; }
 .animate-delay-200 { animation-delay: 200ms; }
 .animate-delay-300 { animation-delay: 300ms; }
+
+/* ===== SCROLL INVISÍVEL (SÓ PARA SUA PÁGINA) ===== */
+.page-form::-webkit-scrollbar {
+  display: none;
+}
+
+.page-form {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* impede scroll da página inteira */
+.page-form-wrapper {
+  height: 100vh;
+  overflow: hidden;
+}

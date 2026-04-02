@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -148,14 +149,40 @@ export default function FormResponsePage() {
     )
 
   return (
-    <div className="flex justify-center items-start min-h-screen p-6 bg-gray-900">
+    <div className="page-form-wrapper relative flex justify-center items-start min-h-screen p-6 bg-gray-900 overflow-hidden">
+
+      {/* BACKGROUND */}
+      <div
+        style={{ backgroundImage: "url('/assets/felizes.avif')" }}
+        className="absolute inset-0 bg-cover bg-center scale-110 opacity-40"
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-3xl bg-[#06292b] border border-[#0e3f41] rounded-3xl shadow-2xl p-10 flex flex-col gap-8 text-white overflow-y-auto"
+        className="relative z-10 page-form w-full max-w-3xl bg-[#06292b]/90 backdrop-blur-md border border-[#0e3f41] rounded-3xl shadow-2xl p-10 flex flex-col gap-8 text-white overflow-y-auto"
         style={{ maxHeight: "90vh" }}
       >
+
+        <div className="flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            whileHover={{ scale: 1.08 }}
+          >
+            <Image
+              src="https://i.ibb.co/Z61BpdnN/download.png"
+              alt="Logo"
+              width={220}
+              height={80}
+              className="h-20 w-auto"
+              priority
+            />
+          </motion.div>
+        </div>
+
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -177,7 +204,6 @@ export default function FormResponsePage() {
               className="flex flex-col gap-3"
             >
               {isTitle ? (
-                /* SOMENTE O TITULO ALTERADO: FONTE MAIOR E NEGRITO */
                 <h2 className="text-2xl font-black uppercase tracking-tight mt-4">
                   {q.pergunta}
                 </h2>
@@ -269,14 +295,11 @@ export default function FormResponsePage() {
         })}
 
         <div className="flex justify-center pt-6">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={handleSubmit}
               disabled={sending}
-              className="px-10 py-6 text-lg rounded-2xl bg-[#18c2a4] hover:bg-[#22d3b6] text-black font-semibold shadow-lg shadow-[#18c2a4]/30 transition flex items-center gap-3"
+              className="px-10 py-6 text-lg rounded-2xl bg-[#18c2a4] hover:bg-[#22d3b6] text-blacks font-semibold shadow-lg shadow-[#18c2a4]/30 transition flex items-center gap-3"
             >
               {sending && (
                 <motion.div
