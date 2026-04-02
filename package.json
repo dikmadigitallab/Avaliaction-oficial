@@ -1,10 +1,6 @@
 {
   "name": "my-project",
-<<<<<<< HEAD
-  "version": "0.1.91",
-=======
   "version": "0.2.0",
->>>>>>> 3005770a42f83bdd098e18b5f0f300ac9d7af62d
   "private": true,
   "scripts": {
     "dev": "next dev",
