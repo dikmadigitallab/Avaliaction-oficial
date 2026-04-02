@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Cores mantidas conforme sua preferência */
   --background: oklch(0.98 0.005 180);
   --foreground: oklch(0.15 0.02 220);
   --card: oklch(1 0 0);
@@ -23,12 +24,9 @@
   --border: oklch(0.90 0.01 200);
   --input: oklch(0.96 0.005 200);
   --ring: oklch(0.60 0.13 175);
-  --chart-1: oklch(0.60 0.13 175);
-  --chart-2: oklch(0.50 0.10 180);
-  --chart-3: oklch(0.45 0.08 200);
-  --chart-4: oklch(0.60 0.12 85);
-  --chart-5: oklch(0.55 0.10 160);
-  --radius: 0.625rem;
+  --radius: 0.75rem; /* Aumentado levemente para um look mais moderno/soft */
+  
+  /* Sidebar */
   --sidebar: oklch(0.985 0.002 200);
   --sidebar-foreground: oklch(0.17 0.02 220);
   --sidebar-primary: oklch(0.52 0.14 180);
@@ -36,7 +34,8 @@
   --sidebar-accent: oklch(0.93 0.03 180);
   --sidebar-accent-foreground: oklch(0.25 0.04 220);
   --sidebar-border: oklch(0.90 0.02 200);
-  --sidebar-ring: oklch(0.52 0.14 180); }
+  --sidebar-ring: oklch(0.52 0.14 180);
+}
 
 .dark {
   --background: oklch(0.16 0.02 220);
@@ -58,29 +57,24 @@
   --border: oklch(0.30 0.02 220);
   --input: oklch(0.30 0.02 220);
   --ring: oklch(0.60 0.14 180);
-  --chart-1: oklch(0.60 0.14 180);
-  --chart-2: oklch(0.55 0.12 220);
-  --chart-3: oklch(0.65 0.10 160);
-  --chart-4: oklch(0.70 0.15 85);
-  --chart-5: oklch(0.60 0.18 30);
-  --sidebar: oklch(0.18 0.02 220);
-  --sidebar-foreground: oklch(0.96 0.01 200);
-  --sidebar-primary: oklch(0.60 0.14 180);
-  --sidebar-primary-foreground: oklch(0.12 0.02 220);
-  --sidebar-accent: oklch(0.26 0.02 220);
-  --sidebar-accent-foreground: oklch(0.96 0.01 200);
-  --sidebar-border: oklch(0.30 0.02 220);
-  --sidebar-ring: oklch(0.60 0.14 180); }
+}
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  
+  /* Ajuste de escala tipográfica para UI/UX */
+  --text-xs: 0.8125rem;   /* 13px */
+  --text-sm: 0.9375rem;   /* 15px - Ideal para UI densa */
+  --text-base: 1.0625rem; /* 17px - Texto de leitura mais confortável */
+  --text-lg: 1.25rem;    /* 20px */
+  --text-xl: 1.5rem;     /* 24px */
+  --text-2xl: 2rem;      /* 32px */
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -94,15 +88,12 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -114,17 +105,45 @@
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground; }
+  * { 
+    @apply border-border outline-ring/50; 
+  }
+  
+  html {
+    /* Base de 16px garante que 1rem seja legível em qualquer dispositivo */
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body { 
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: var(--text-base);
+    line-height: 1.6; /* Aumenta o respiro entre linhas */
+  }
+
+  /* Melhoria de hierarquia para cabeçalhos */
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight text-foreground;
+    line-height: 1.2;
+  }
+
+  h1 { @apply text-4xl mb-6; }
+  h2 { @apply text-2xl mb-4; }
+  h3 { @apply text-xl mb-3; }
+
+  /* Transições suaves */
   html, body, * {
-    transition-property: color, background-color, border-color, box-shadow;
-    transition-duration: 300ms;
+    transition-property: color, background-color, border-color, box-shadow, transform;
+    transition-duration: 200ms;
     transition-timing-function: ease-in-out;
   }
 }
 
+/* Animações */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fade-in {
@@ -132,36 +151,20 @@
   to { opacity: 1; }
 }
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.92); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
-}
-@keyframes slide-in-left {
-  from { opacity: 0; transform: translateX(-24px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: translateX(0); }
 }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { transform: translateY(-4px); }
 }
 
-.animate-fade-in-up { animation: fade-in-up 0.6s ease-out both; }
-.animate-fade-in { animation: fade-in 0.5s ease-out both; }
-.animate-scale-in { animation: scale-in 0.5s ease-out both; }
-.animate-slide-in-left { animation: slide-in-left 0.5s ease-out both; }
-.animate-slide-in-right { animation: slide-in-right 0.5s ease-out both; }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+.animate-fade-in { animation: fade-in 0.4s ease-out both; }
+.animate-scale-in { animation: scale-in 0.4s ease-out both; }
 .animate-float { animation: float 3s ease-in-out infinite; }
-.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* Delays */
 .animate-delay-100 { animation-delay: 100ms; }
 .animate-delay-200 { animation-delay: 200ms; }
 .animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-400 { animation-delay: 400ms; }
-.animate-delay-500 { animation-delay: 500ms; }
-.animate-delay-600 { animation-delay: 600ms; }

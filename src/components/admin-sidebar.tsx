@@ -101,7 +101,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* User Card + Logout */}
       <div className="mt-auto border-t border-sidebar-border p-4 space-y-3">
         
-        <CardUser nome="andre" role="admin" />
+        <CardUser/>
 
         <ThemeToggle />
 
@@ -130,7 +130,7 @@ export function AdminSidebar() {
         </div>
       </aside>
 
-s
+
     </>
   )
 }
