@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         titulo='Dashboard'
         descrição='Painel de controle para avaliadores e administradores.'
         />
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 mt-16">
           {children}
         </div>
       </main>
