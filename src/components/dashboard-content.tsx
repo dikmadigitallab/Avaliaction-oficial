@@ -193,11 +193,13 @@ function StatCard({
   label,
   value,
   iconColor,
+ 
 }: {
   icon: React.ReactNode
   label: string
   value: number | string
   iconColor: string
+  className: string
 }) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
@@ -218,126 +220,150 @@ function StatCard({
 /* ================= DASHBOARD ================= */
 
 export default function DashboardContent() {
-  return (
-    <main className="bg-[#EFF6F4] min-h-screen p-8 max-w-7xl mx-auto space-y-8 relative dark:bg-[#0B161A]">
-      <button
-        onClick={exportToExcel}
-        className="absolute top-8 right-8 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-      >
-        <Download size={18} />
-        Exportar Excel
-      </button>
+ 
+return (
+    <main className="min-h-screen p-6 md:p-8 space-y-8 bg-background animate-fade-in">
+      {/* HEADER ACTIONS */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Painel de Controle
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Métricas principais do sistema
+          </p>
+        </div>
 
-      <section>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Painel de Controle
-        </h1>
-        <p className="text-sm text-gray-600 mt-1 dark:text-gay-300">
-          Métricas principais do sistema
-        </p>
-      </section>
+        <button
+          onClick={exportToExcel}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm active:scale-95 group"
+        >
+          <Download size={18} className="group-hover:animate-float" />
+          Exportar Excel
+        </button>
+      </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 ">
+      {/* STATS GRID */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
-          icon={<User size={24} />}
+          icon={<User size={20} />}
           label="Total de Admins"
           value={adminsCount}
-          iconColor="bg-blue-500"
+          className="border-l-4 border-l-blue-500"
+          iconColor=""
         />
         <StatCard
-          icon={<Users size={24} />}
+          icon={<Users size={20} />}
           label="Colaboradores"
           value={employeesCount}
-          iconColor="bg-purple-500"
+          className="border-l-4 border-l-purple-500"
+           iconColor=""
         />
         <StatCard
-          icon={<UserCheck size={24} />}
+          icon={<UserCheck size={20} />}
           label="Supervisores"
           value={supervisorsCount}
-          iconColor="bg-indigo-500"
+          className="border-l-4 border-l-indigo-500"
+           iconColor=""
         />
         <StatCard
-          icon={<CheckSquare size={24} />}
+          icon={<CheckSquare size={20} />}
           label="Avaliações"
           value={evaluationsCount}
-          iconColor="bg-green-500"
+          className="border-l-4 border-l-green-500"
+           iconColor=""
         />
         <StatCard
-          icon={<TrendingUp size={24} />}
+          icon={<TrendingUp size={20} />}
           label="Avaliação Média"
           value={avgEvaluation.toFixed(1)}
-          iconColor="bg-yellow-400"
+          className="border-l-4 border-l-yellow-400"
+           iconColor=""
         />
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">
+      {/* CHARTS GRID */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h2 className="font-bold text-card-foreground mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-primary rounded-full" />
             Avaliações por Dia
           </h2>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={240}>
             <LineChart data={evaluationsByDay}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="day" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px" }}
+              />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#3b82f6"
+                stroke="var(--primary)"
                 strokeWidth={3}
+                dot={{ r: 4, fill: "var(--primary)" }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h2 className="font-bold text-card-foreground mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-chart-2 rounded-full" />
             Distribuição de Notas
           </h2>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={scoreDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="label"
+                stroke="var(--muted-foreground)"
+                fontSize={10}
                 interval={0}
-                angle={-30}
-                textAnchor="end"
-                height={60}
+                tickLine={false}
+                axisLine={false}
               />
-              <YAxis domain={[0, 40]} />
-              <Tooltip />
-              <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip cursor={{fill: 'var(--muted)', opacity: 0.4}} />
+              <Bar dataKey="value" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </section>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <h2 className="font-semibold text-gray-800 mb-4">
-          Avaliações Recentes
-        </h2>
+      {/* RECENT TABLE */}
+      <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+          <h2 className="font-bold text-card-foreground tracking-tight">
+            Avaliações Recentes
+          </h2>
+        </div>
 
-        <div className="overflow-x-auto dark:text-black">
-          <table className="w-full table-auto text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-300">
-                <th className="py-2 px-3 text-gray-600 text-sm">Supervisor</th>
-                <th className="py-2 px-3 text-gray-600 text-sm">Empresa</th>
-                <th className="py-2 px-3 text-gray-600 text-sm">Média</th>
-                <th className="py-2 px-3 text-gray-600 text-sm">Data</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left border-collapse">
+            <thead className="bg-muted/30 text-muted-foreground font-bold uppercase text-[10px] tracking-widest">
+              <tr>
+                <th className="py-4 px-6">Supervisor</th>
+                <th className="py-4 px-6">Empresa</th>
+                <th className="py-4 px-6 text-center">Média</th>
+                <th className="py-4 px-6 text-right">Data</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {recentEvaluations.map((ev, i) => (
                 <tr
                   key={i}
-                  className="border-b border-gray-200 hover:bg-gray-50"
+                  className="hover:bg-muted/20 transition-colors group"
                 >
-                  <td className="py-2 px-3">{ev.supervisor}</td>
-                  <td className="py-2 px-3">{ev.company}</td>
-                  <td className="py-2 px-3">{ev.avgScore}</td>
-                  <td className="py-2 px-3">{ev.date}</td>
+                  <td className="py-4 px-6 font-medium text-foreground">{ev.supervisor}</td>
+                  <td className="py-4 px-6 text-muted-foreground">{ev.company}</td>
+                  <td className="py-4 px-6 text-center">
+                    <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-bold text-xs border border-primary/20">
+                      {ev.avgScore}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-right text-muted-foreground tabular-nums">{ev.date}</td>
                 </tr>
               ))}
             </tbody>
@@ -345,5 +371,6 @@ export default function DashboardContent() {
         </div>
       </section>
     </main>
-  )
+);
+  
 }
