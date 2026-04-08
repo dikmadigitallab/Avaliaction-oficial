@@ -6,15 +6,16 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import {
   LayoutDashboard,
   Users,
   LogOut,
-  Menu,
   ClipboardList,
   Mail,
   ChevronRight,
+  ChevronLeft,
+  Menu,
+  X,
 } from "lucide-react"
 import { clearAdminSession } from "@/lib/store"
 import { useState, useEffect } from "react"
@@ -51,8 +52,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       
-      {/* Logo */}
-      <div className="flex h-16 items-center px-6 border-b border-sidebar-border-/50">
+      <div className="flex h-16 items-center px-6 border-b border-sidebar-border/50">
         <Image
           src="https://i.ibb.co/Z61BpdnN/download.png"
           alt="Logo"
@@ -63,7 +63,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         />
       </div>
 
-      {/* Menu */}
       <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
         <p className="px-2 mb-2 text-[10px] font-bold uppercase tracking-widest text-sidebar-foreground/40">
           Menu Principal
@@ -98,11 +97,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      {/* User Card + Logout */}
       <div className="mt-auto border-t border-sidebar-border p-4 space-y-3">
-        
-        <CardUser/>
-
+        <CardUser />
         <ThemeToggle />
 
         <Button
@@ -124,13 +120,52 @@ export function AdminSidebar() {
 
   return (
     <>
+      {/* Desktop */}
       <aside className="hidden lg:flex lg:w-64">
         <div className="fixed inset-y-0 left-0 z-30 w-64">
           <SidebarContent />
         </div>
       </aside>
 
+      {/* Mobile botão abrir */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-sidebar border border-sidebar-border"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
 
+      {/* Mobile sidebar */}
+      <div
+        className={cn(
+          "lg:hidden fixed inset-y-0 left-0 z-50 w-64 transform bg-sidebar border-r border-sidebar-border transition-transform duration-300",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* botão fechar */}
+        <div className="flex justify-end p-3">
+          <button
+            onClick={() => setOpen(false)}
+            className="p-2 rounded-md hover:bg-sidebar-accent"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <SidebarContent onNavigate={() => setOpen(false)} />
+      </div>
+
+      {/* Botão voltar lateral quando fechado */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="lg:hidden fixed top-1/2 left-0 z-40 -translate-y-1/2 bg-sidebar border border-sidebar-border rounded-r-md p-1"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
     </>
   )
 }
