@@ -27,7 +27,6 @@ import { Badge } from "@/components/ui/badge"
 import {
   ClipboardList,
   Star,
-  AlignLeft,
   Copy,
   Mail,
   MessageCircle,

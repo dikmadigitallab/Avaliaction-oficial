@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { QuestionType } from "@prisma/client"
+import { QuestionType } from "@/lib/types"
 
 
 
@@ -95,33 +95,59 @@ export async function GET(req: NextRequest) {
 
 
 //precisa mexer ainda
+
+
 export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
 
+    const body = await req.json()
+    const { name, anonymous, cpf_list, questions } = body
+
     if (!id) {
-      return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 })
+      return NextResponse.json(
+        { error: "ID do formulário não informado" },
+        { status: 400 }
+      )
     }
 
-    const body = await req.json()
-    const { title, type, required, order } = body
-
-    const question = await prisma.question.update({
+    const form = await prisma.form.update({
       where: { id },
       data: {
-        title,
-        type,
-        required,
-        order,
+        name,
+        anonymous,
+        cpf_list,
+        ...(Array.isArray(questions) && {
+          questions: {
+            deleteMany: {},
+            create: questions.map((q: any) => ({
+              pergunta: q.pergunta,
+              type: q.type as QuestionType,
+              required: q.required ?? true,
+              order: q.order ?? 0,
+              itens: q.itens ?? []
+            }))
+          }
+        })
       },
+      include: {
+        questions: true
+      }
     })
 
-    return NextResponse.json(question)
-  } catch {
-    return NextResponse.json({ error: "Erro ao atualizar pergunta" }, { status: 500 })
+    return NextResponse.json(form, { status: 200 })
+
+  } catch (error: any) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: error.message || "Erro ao atualizar formulário" },
+      { status: 500 }
+    )
   }
 }
+
 
 
 export async function DELETE(req: NextRequest) {

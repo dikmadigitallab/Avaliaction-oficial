@@ -13,6 +13,14 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
   ArrowLeft,
   Pencil,
   Trash2,
@@ -22,13 +30,17 @@ import {
   Mail,
   MessageCircle,
   Save,
+  X,
+  Plus,
+  Loader2,
 } from "lucide-react"
 import { toast } from "sonner"
 
+// Tipagem baseada no seu Model Prisma
 type Question = {
   id: string
-  title: string
-  type: string
+  pergunta: string
+  type: "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO"
   required: boolean
   order: number
 }
@@ -49,7 +61,11 @@ export default function FormViewPage() {
   const [form, setForm] = useState<FormType | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
+  // Estados de edição
   const [name, setName] = useState("")
+  const [questions, setQuestions] = useState<Question[]>([])
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
@@ -59,11 +75,13 @@ export default function FormViewPage() {
         if (!res.ok) throw new Error()
 
         const data = await res.json()
-
         setForm(data)
+        
+        // Inicializa os estados de edição com os dados que já existem no banco
         setName(data.name)
+        setQuestions(data.questions || [])
       } catch {
-        toast.error("Erro ao carregar formulario.")
+        toast.error("Erro ao carregar formulário.")
       } finally {
         setLoading(false)
       }
@@ -72,29 +90,15 @@ export default function FormViewPage() {
     if (formId) fetchForm()
   }, [formId])
 
-  const handleDelete = async () => {
-    try {
-      const res = await fetch(`/api/forms?id=${formId}`, {
-        method: "DELETE",
-      })
-
-      if (!res.ok) throw new Error()
-
-      toast.success("Formulario removido.")
-      router.push("/admin/formularios")
-    } catch {
-      toast.error("Erro ao deletar formulario.")
-    }
-  }
-
   const handleUpdate = async () => {
+    setSaving(true)
     try {
       const res = await fetch(`/api/forms?id=${formId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          anonymous: form?.anonymous,
+          questions, // Envia o array completo de perguntas para sincronização
         }),
       })
 
@@ -103,219 +107,210 @@ export default function FormViewPage() {
       const updated = await res.json()
       setForm(updated)
       setEditing(false)
-      toast.success("Formulario atualizado.")
+      toast.success("Alterações salvas com sucesso!")
     } catch {
-      toast.error("Erro ao atualizar formulario.")
+      toast.error("Erro ao atualizar formulário.")
+    } finally {
+      setSaving(false)
     }
   }
 
-  const buildLink = () => {
-    return `${window.location.origin}/responder/${formId}`
+  const updateQuestion = (id: string, field: keyof Question, value: any) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+    )
   }
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(buildLink())
-      toast.success("Link copiado.")
-    } catch {
-      toast.error("Erro ao copiar link.")
+  const addQuestion = () => {
+    const newQuestion: Question = {
+      id: `temp-${Math.random().toString(36).substr(2, 9)}`,
+      pergunta: "", // Começa vazio para o usuário digitar
+      type: "TEXT",
+      required: true,
+      order: questions.length,
     }
+    setQuestions([...questions, newQuestion])
   }
 
-  const handleEmail = () => {
-    const subject = encodeURIComponent("Formulario para resposta")
-    const body = encodeURIComponent(
-      `Responda o formulario pelo link:\n\n${buildLink()}`
-    )
-    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank")
+  const removeQuestion = (id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id))
   }
 
-  const handleWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Responda o formulario:\n${buildLink()}`
-    )
-    window.open(`https://wa.me/?text=${text}`, "_blank")
-  }
-
-  const handlePreview = () => {
-    window.open(`/admin/formularios/preview/${formId}`, "_blank")
-  }
-
-  if (loading) return <div>Carregando...</div>
-  if (!form) return <div>Formulario nao encontrado.</div>
+  // Funções auxiliares de compartilhamento
+  const buildLink = () => typeof window !== "undefined" ? `${window.location.origin}/responder/${formId}` : ""
+  
+  if (loading) return <div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin" /></div>
+  if (!form) return <div className="p-10 text-center">Formulário não encontrado.</div>
 
   return (
-    <div className="space-y-6 max-w-4xl w-full">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button
-          variant="ghost"
-          className="gap-2"
-          onClick={() => router.push("/admin/formularios")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
+    <div className="space-y-6 max-w-4xl w-full mx-auto p-4 pb-20">
+      {/* HEADER DE AÇÕES */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-background/80 sticky top-0 z-10 py-2 backdrop-blur">
+        <Button variant="ghost" onClick={() => router.push("/admin/formularios")}>
+          <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           {!editing ? (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setEditing(true)}
-            >
-              <Pencil className="h-4 w-4" />
-              Editar
+            <Button onClick={() => setEditing(true)} className="gap-2">
+              <Pencil className="h-4 w-4" /> Editar Formulário
             </Button>
           ) : (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleUpdate}
-            >
-              <Save className="h-4 w-4" />
-              Salvar
-            </Button>
+            <>
+              <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdate} disabled={saving} className="gap-2 bg-green-600 hover:bg-green-700">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Salvar Alterações
+              </Button>
+            </>
           )}
-
-          <Button
-            variant="destructive"
-            className="gap-2"
-            onClick={() => setConfirmDelete(true)}
-          >
+          <Button variant="destructive" size="icon" onClick={() => setConfirmDelete(true)}>
             <Trash2 className="h-4 w-4" />
-            Deletar
           </Button>
         </div>
       </div>
 
+      {/* CARD DO TÍTULO */}
+      <Card>
+        <CardHeader>
+          {editing ? (
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Título do Formulário</label>
+              <Input 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                className="text-lg font-bold"
+                placeholder="Ex: Pesquisa de Satisfação"
+              />
+            </div>
+          ) : (
+            <CardTitle className="text-2xl">{form.name}</CardTitle>
+          )}
+          <CardDescription>ID: {form.id}</CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* ESTRUTURA DE PERGUNTAS */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-lg font-semibold">Perguntas ({questions.length})</h3>
+          {editing && (
+            <Button onClick={addQuestion} size="sm" variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" /> Nova Pergunta
+            </Button>
+          )}
+        </div>
+
+        {questions.map((q, index) => (
+          <Card key={q.id} className={editing ? "border-primary/40 shadow-md" : ""}>
+            <CardContent className="pt-6 space-y-4">
+              {editing ? (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase">
+                        Pergunta {index + 1}
+                      </label>
+                      <Input 
+                        value={q.pergunta} // Aqui o valor antigo aparece para edição
+                        onChange={(e) => updateQuestion(q.id, "pergunta", e.target.value)}
+                        placeholder="Digite o enunciado da pergunta..."
+                      />
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive mt-6" 
+                      onClick={() => removeQuestion(q.id)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium">Tipo de Campo</label>
+                      <Select 
+                        value={q.type} 
+                        onValueChange={(val: any) => updateQuestion(q.id, "type", val)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TEXT">Texto</SelectItem>
+                          <SelectItem value="AVALIACAO">Avaliação (Estrelas)</SelectItem>
+                          <SelectItem value="CHECKBOX">Múltipla Escolha</SelectItem>
+                          <SelectItem value="RADIO">Seleção Única</SelectItem>
+                          <SelectItem value="LIST">Lista Suspensa</SelectItem>
+                          <SelectItem value="TITULO">Apenas Título/Seção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-8">
+                      <Checkbox 
+                        id={`req-${q.id}`} 
+                        checked={q.required} 
+                        onCheckedChange={(val) => updateQuestion(q.id, "required", !!val)}
+                      />
+                      <label htmlFor={`req-${q.id}`} className="text-sm font-medium cursor-pointer">
+                        Resposta Obrigatória
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <p className="font-medium text-lg">
+                      <span className="text-muted-foreground mr-2">{index + 1}.</span>
+                      {q.pergunta}
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary" className="text-[10px]">{q.type}</Badge>
+                      {q.required && <Badge variant="outline" className="text-[10px] text-red-500 border-red-200">Obrigatória</Badge>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* COMPARTILHAMENTO (SÓ VISÍVEL SE NÃO ESTIVER EDITANDO) */}
+      {!editing && (
+        <Card className="bg-muted/30">
+          <CardHeader><CardTitle className="text-base">Compartilhar</CardTitle></CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+             <Button variant="outline" size="sm" onClick={() => {
+               navigator.clipboard.writeText(buildLink());
+               toast.success("Link copiado!");
+             }}><Copy className="h-4 w-4 mr-2" /> Copiar Link</Button>
+             <Button variant="outline" size="sm" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(buildLink())}`)}><MessageCircle className="h-4 w-4 mr-2" /> WhatsApp</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* MODAL DE DELETAR */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-[#06292b] rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-              Confirmar exclusão
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Tem certeza que deseja deletar este formulario?
-            </p>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setConfirmDelete(false)}
-              >
-                Cancelar
-              </Button>
-
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-              >
-                Confirmar
-              </Button>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#06292b] rounded-xl p-6 w-full max-w-sm space-y-4 border shadow-2xl">
+            <h2 className="text-lg font-semibold">Excluir Formulário?</h2>
+            <p className="text-sm text-muted-foreground">Essa ação não pode ser desfeita e excluirá todas as respostas já recebidas.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setConfirmDelete(false)}>Cancelar</Button>
+              <Button variant="destructive" onClick={async () => {
+                 await fetch(`/api/forms?id=${formId}`, { method: "DELETE" });
+                 router.push("/admin/formularios");
+              }}>Confirmar Exclusão</Button>
             </div>
           </div>
         </div>
       )}
-
-      <Card className="w-full">
-        <CardHeader className="w-full">
-          {editing ? (
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full break-all"
-            />
-          ) : (
-            <CardTitle className="text-xl break-all whitespace-normal leading-snug w-full">
-              {form.name}
-            </CardTitle>
-          )}
-
-          <CardDescription className="break-words">
-            Criado em{" "}
-            {new Date(form.createdAt).toLocaleDateString("pt-BR")}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-wrap items-center gap-3">
-          <Badge variant="secondary" className="gap-2">
-            <BarChart3 className="h-3 w-3" />
-            0 respostas
-          </Badge>
-
-          <Badge variant="outline">
-            {form.questions.length} perguntas
-          </Badge>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-base">Link de compartilhamento</CardTitle>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4">
-          <div className="border rounded-md p-3 text-sm break-all">
-            {buildLink()}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="gap-2" onClick={handleCopy}>
-              <Copy className="h-4 w-4" />
-              Copiar
-            </Button>
-
-            <Button variant="outline" className="gap-2" onClick={handleEmail}>
-              <Mail className="h-4 w-4" />
-              Email
-            </Button>
-
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleWhatsApp}
-            >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
-            </Button>
-
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handlePreview}
-            >
-              <Eye className="h-4 w-4" />
-              Previsualizar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-base">Perguntas</CardTitle>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {form.questions.map((q, index) => (
-            <div key={q.id} className="border rounded-lg p-4 space-y-2">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <span className="font-medium break-words w-full">
-                  {index + 1}. {q.title}
-                </span>
-
-                {q.required && (
-                  <Badge variant="outline">Obrigatoria</Badge>
-                )}
-              </div>
-
-              <div className="text-sm text-muted-foreground break-words">
-                Tipo: {q.type}
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   )
 }
