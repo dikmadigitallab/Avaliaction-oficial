@@ -25,24 +25,22 @@ import {
   Pencil,
   Trash2,
   Copy,
-  Eye,
-  BarChart3,
-  Mail,
   MessageCircle,
   Save,
   X,
   Plus,
   Loader2,
+  GripVertical,
 } from "lucide-react"
 import { toast } from "sonner"
 
-// Tipagem baseada no seu Model Prisma
 type Question = {
   id: string
   pergunta: string
   type: "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO"
   required: boolean
   order: number
+  itens: string[]
 }
 
 type FormType = {
@@ -124,16 +122,51 @@ export default function FormViewPage() {
   const addQuestion = () => {
     const newQuestion: Question = {
       id: `temp-${Math.random().toString(36).substr(2, 9)}`,
-      pergunta: "", // Começa vazio para o usuário digitar
+      pergunta: "",
       type: "TEXT",
       required: true,
       order: questions.length,
+      itens: [],
     }
     setQuestions([...questions, newQuestion])
   }
 
   const removeQuestion = (id: string) => {
     setQuestions((prev) => prev.filter((q) => q.id !== id))
+  }
+
+  const addItem = (questionId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId
+          ? { ...q, itens: [...(q.itens || []), ""] }
+          : q
+      )
+    )
+  }
+
+  const updateItem = (questionId: string, index: number, value: string) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId
+          ? { ...q, itens: (q.itens || []).map((item, i) => (i === index ? value : item)) }
+          : q
+      )
+    )
+  }
+
+  const removeItem = (questionId: string, index: number) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId
+          ? { ...q, itens: (q.itens || []).filter((_, i) => i !== index) }
+          : q
+      )
+    )
+  }
+
+  const hasOptions = (type: Question["type"]) => {
+    return ["CHECKBOX", "RADIO", "LIST"].includes(type)
   }
 
   // Funções auxiliares de compartilhamento
@@ -261,6 +294,54 @@ export default function FormViewPage() {
                       </label>
                     </div>
                   </div>
+
+                  {hasOptions(q.type) && (
+                    <div className="space-y-3 mt-4 p-4 bg-muted/30 rounded-lg border border-dashed">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold uppercase text-muted-foreground">
+                          Opções de Resposta
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addItem(q.id)}
+                          className="gap-1 h-7"
+                        >
+                          <Plus className="h-3 w-3" /> Adicionar Opção
+                        </Button>
+                      </div>
+                      
+                      {(q.itens || []).length === 0 ? (
+                        <p className="text-sm text-muted-foreground italic py-2">
+                          Nenhuma opção adicionada. Clique em "Adicionar Opção" para começar.
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {(q.itens || []).map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                              <Input
+                                value={item}
+                                onChange={(e) => updateItem(q.id, idx, e.target.value)}
+                                placeholder={`Opção ${idx + 1}`}
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive h-8 w-8"
+                                onClick={() => removeItem(q.id, idx)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex justify-between items-start">
