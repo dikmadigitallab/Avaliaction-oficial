@@ -106,14 +106,14 @@ export default function FormResponsePage() {
 
     try {
       setSending(true)
-      const respostasFormatadas = form.questions
+      const respostasFormatadas: Record<string, any> = {}
+      form.questions
         .filter((q) => q.type !== "TITULO")
-        .map((q) => ({
-          Pergunta: q.pergunta,
-          Resposta: Array.isArray(answers[q.id])
+        .forEach((q) => {
+          respostasFormatadas[q.id] = Array.isArray(answers[q.id])
             ? answers[q.id].join(", ")
-            : answers[q.id] ?? "",
-        }))
+            : answers[q.id] ?? ""
+        })
 
       const res = await fetch(`/api/forms/respostas`, {
         method: "POST",
@@ -175,7 +175,9 @@ export default function FormResponsePage() {
     
           <div className="p-6 flex flex-col gap-5">
     
-            {form.questions.map((q) => {
+            {form.questions
+              .filter((q) => !q.pergunta.startsWith("@INDICADOR:"))
+              .map((q) => {
               const isTitle = q.type === "TITULO"
     
               return (
@@ -234,7 +236,7 @@ export default function FormResponsePage() {
     
                       {q.type === "RADIO" && q.itens && (
                         <div className="flex flex-col gap-2">
-                          {q.itens.map((opt) => (
+                          {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                             <label
                               key={opt}
                               className={`flex items-center gap-2 px-3 py-2 rounded-md border text-sm cursor-pointer transition ${
@@ -260,7 +262,7 @@ export default function FormResponsePage() {
     
                       {q.type === "CHECKBOX" && q.itens && (
                         <div className="flex flex-col gap-2">
-                          {q.itens.map((opt) => (
+                          {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                             <label
                               key={opt}
                               className="flex items-center gap-2 px-3 py-2 rounded-md border border-[#0e3f41] text-sm cursor-pointer hover:border-[#18c2a4] transition"
@@ -288,7 +290,7 @@ export default function FormResponsePage() {
                           className="h-11 bg-[#021415] border border-[#0e3f41] rounded-lg text-white px-3 focus:border-[#18c2a4] focus:ring-1 focus:ring-[#18c2a4]/20"
                         >
                           <option value="">Selecionar</option>
-                          {q.itens.map((opt) => (
+                          {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                             <option key={opt} value={opt}>
                               {opt}
                             </option>

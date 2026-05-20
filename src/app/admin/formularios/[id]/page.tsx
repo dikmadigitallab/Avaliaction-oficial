@@ -236,7 +236,9 @@ export default function FormViewPage() {
           )}
         </div>
 
-        {questions.map((q, index) => (
+        {questions
+          .filter((q) => !q.pergunta.startsWith("@INDICADOR:"))
+          .map((q, index) => (
           <Card key={q.id} className={editing ? "border-primary/40 shadow-md" : ""}>
             <CardContent className="pt-6 space-y-4">
               {editing ? (
