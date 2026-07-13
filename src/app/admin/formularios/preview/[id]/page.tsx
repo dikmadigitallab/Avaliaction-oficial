@@ -94,7 +94,9 @@ export default function FormPreviewPage() {
           </p>
         </div>
 
-        {form.questions.map((q, index) => (
+        {form.questions
+          .filter((q) => !q.pergunta.startsWith("@INDICADOR:"))
+          .map((q, index) => (
           <motion.div
             key={q.id}
             initial={{ opacity: 0, y: 20 }}
@@ -150,7 +152,7 @@ export default function FormPreviewPage() {
 
             {q.type === "RADIO" && q.itens && (
               <div className="flex flex-col gap-2 text-gray-800 dark:text-white">
-                {q.itens.map((opt) => (
+                {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
                       type="radio"
@@ -167,7 +169,7 @@ export default function FormPreviewPage() {
 
             {q.type === "CHECKBOX" && q.itens && (
               <div className="flex flex-col gap-2 text-gray-800 dark:text-white">
-                {q.itens.map((opt) => (
+                {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                   <label key={opt} className="flex gap-2 items-center">
                     <input
                       type="checkbox"
@@ -188,7 +190,7 @@ export default function FormPreviewPage() {
                 className="bg-gray-50 dark:bg-[#031b1c] border border-gray-300 dark:border-[#0e3f41] text-gray-800 dark:text-white p-2 rounded-xl h-12 focus:border-[#18c2a4]"
               >
                 <option value="">Selecione...</option>
-                {q.itens.map((opt) => (
+                {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
