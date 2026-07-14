@@ -50,7 +50,7 @@ export interface AccessLog {
 }
 
 // Forms
-export type QuestionType = "avaliacao" | "texto"
+export type QuestionType = "avaliacao" | "texto" | "imagem"
 
 export interface FormQuestion {
   id: string

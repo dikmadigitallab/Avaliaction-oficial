@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { ImageIcon, X } from "lucide-react"
 
 type QuestionType =
   | "TEXT"
@@ -16,6 +17,7 @@ type QuestionType =
   | "RADIO"
   | "LIST"
   | "TITULO"
+  | "IMAGEM"
 
 interface Question {
   id: string
@@ -85,6 +87,31 @@ export default function FormResponsePage() {
         [questionId]: [...current, option],
       }
     })
+  }
+
+  const handleImageChange = (questionId: string, file: File | null) => {
+    if (!file) {
+      setAnswers((prev) => {
+        const next = { ...prev }
+        delete next[questionId]
+        return next
+      })
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 5MB")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setAnswers((prev) => ({
+        ...prev,
+        [questionId]: reader.result as string,
+      }))
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async () => {
@@ -296,6 +323,39 @@ export default function FormResponsePage() {
                             </option>
                           ))}
                         </select>
+                      )}
+
+                      {q.type === "IMAGEM" && (
+                        <div className="space-y-3">
+                          {answers[q.id] ? (
+                            <div className="relative group">
+                              <img
+                                src={answers[q.id]}
+                                alt="Preview"
+                                className="w-full max-h-64 object-contain rounded-lg border border-[#0e3f41]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleImageChange(q.id, null)}
+                                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center gap-2 h-40 border-2 border-dashed border-[#0e3f41] rounded-lg cursor-pointer hover:border-[#18c2a4] transition-colors bg-[#021415]">
+                              <ImageIcon className="h-8 w-8 text-gray-500" />
+                              <span className="text-sm text-gray-400">Clique para enviar uma imagem</span>
+                              <span className="text-[10px] text-gray-500">JPG, PNG ou WEBP (máx. 5MB)</span>
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                onChange={(e) => handleImageChange(q.id, e.target.files?.[0] || null)}
+                              />
+                            </label>
+                          )}
+                        </div>
                       )}
                     </>
                   )}
