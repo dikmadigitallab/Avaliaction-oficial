@@ -33,6 +33,7 @@ import {
   ExternalLink,
   Trash2Icon,
   Eye,
+  MessageSquareText,
 } from "lucide-react"
 import type { FormTemplate } from "@/lib/types"
 import { toast } from "sonner"
@@ -189,6 +190,12 @@ return (
                         <Badge variant="outline" className="gap-1 text-[10px] border-border/50 bg-background/50">
                           <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                           {ratingCount} Avaliação
+                        </Badge>
+                      )}
+                      {((form as any)._count?.respostas ?? 0) > 0 && (
+                        <Badge variant="outline" className="gap-1 text-[10px] border-border/50 bg-background/50">
+                          <MessageSquareText className="h-3 w-3" />
+                          {(form as any)._count.respostas} Respostas
                         </Badge>
                       )}
                     </div>
