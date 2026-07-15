@@ -1,14 +1,13 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { ImageIcon, X } from "lucide-react"
+import { ImageIcon, X, FileText, File } from "lucide-react"
 
 type QuestionType =
   | "TEXT"
@@ -42,6 +41,7 @@ export default function FormResponsePage() {
   const [form, setForm] = useState<Form | null>(null)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [sending, setSending] = useState(false)
+  const [uploading, setUploading] = useState<Record<string, boolean>>({})
 
   const router = useRouter()
 
@@ -89,29 +89,74 @@ export default function FormResponsePage() {
     })
   }
 
-  const handleImageChange = (questionId: string, file: File | null) => {
-    if (!file) {
+  const handleFileChange = async (questionId: string, file: File | null) => {
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Arquivo deve ter no máximo 10MB")
+      return
+    }
+
+    try {
+      const uploadKey = `${questionId}-${Date.now()}`
+      setUploading((prev) => ({ ...prev, [uploadKey]: true }))
+
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("formId", formId || "")
+      formData.append("questionId", questionId)
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        toast.error(data.error || "Erro ao enviar arquivo")
+        return
+      }
+
+      const data = await res.json()
+      const newFile = {
+        url: data.url,
+        name: data.name,
+        type: data.type,
+        size: data.size,
+      }
+
       setAnswers((prev) => {
+        const current = Array.isArray(prev[questionId]) ? prev[questionId] : []
+        return {
+          ...prev,
+          [questionId]: [...current, newFile],
+        }
+      })
+    } catch {
+      toast.error("Erro ao enviar arquivo")
+    } finally {
+      setUploading((prev) => {
+        const next = { ...prev }
+        // Remove todas as keys de uploading deste questionId
+        Object.keys(next).forEach((k) => {
+          if (k.startsWith(questionId)) delete next[k]
+        })
+        return next
+      })
+    }
+  }
+
+  const handleRemoveFile = (questionId: string, fileIndex: number) => {
+    setAnswers((prev) => {
+      const current = Array.isArray(prev[questionId]) ? prev[questionId] : []
+      const updated = current.filter((_: any, i: number) => i !== fileIndex)
+      if (updated.length === 0) {
         const next = { ...prev }
         delete next[questionId]
         return next
-      })
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 5MB")
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      setAnswers((prev) => ({
-        ...prev,
-        [questionId]: reader.result as string,
-      }))
-    }
-    reader.readAsDataURL(file)
+      }
+      return { ...prev, [questionId]: updated }
+    })
   }
 
   const handleSubmit = async () => {
@@ -137,9 +182,20 @@ export default function FormResponsePage() {
       form.questions
         .filter((q) => q.type !== "TITULO")
         .forEach((q) => {
-          respostasFormatadas[q.id] = Array.isArray(answers[q.id])
-            ? answers[q.id].join(", ")
-            : answers[q.id] ?? ""
+          const ans = answers[q.id]
+          if (q.type === "IMAGEM" && Array.isArray(ans) && ans.length > 0) {
+            // Para arquivos, salva array de URL + metadados
+            respostasFormatadas[q.id] = ans.map((f: any) => ({
+              url: f.url,
+              name: f.name,
+              type: f.type,
+              size: f.size,
+            }))
+          } else {
+            respostasFormatadas[q.id] = Array.isArray(ans)
+              ? ans.join(", ")
+              : ans ?? ""
+          }
         })
 
       const res = await fetch(`/api/forms/respostas`, {
@@ -327,33 +383,92 @@ export default function FormResponsePage() {
 
                       {q.type === "IMAGEM" && (
                         <div className="space-y-3">
-                          {answers[q.id] ? (
-                            <div className="relative group">
-                              <img
-                                src={answers[q.id]}
-                                alt="Preview"
-                                className="w-full max-h-64 object-contain rounded-lg border border-[#0e3f41]"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleImageChange(q.id, null)}
-                                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
+                          {/* Lista de arquivos já enviados */}
+                          {Array.isArray(answers[q.id]) && answers[q.id].length > 0 && (
+                            <div className="space-y-2">
+                              {answers[q.id].map((file: any, idx: number) => (
+                                <div key={idx} className="relative group">
+                                  {file.type?.startsWith("image/") ? (
+                                    <div className="relative">
+                                      <img
+                                        src={file.url}
+                                        alt={file.name}
+                                        className="w-full max-h-48 object-contain rounded-lg border border-[#0e3f41]"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveFile(q.id, idx)}
+                                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-3 p-3 bg-[#021415] rounded-lg border border-[#0e3f41] group-hover:border-red-500/40 transition">
+                                      {file.type === "application/pdf" ? (
+                                        <FileText className="h-8 w-8 text-red-400 flex-shrink-0" />
+                                      ) : (
+                                        <File className="h-8 w-8 text-blue-400 flex-shrink-0" />
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm text-white truncate">{file.name}</p>
+                                        <p className="text-[10px] text-gray-500">
+                                          {(file.size / 1024).toFixed(1)} KB
+                                        </p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveFile(q.id, idx)}
+                                        className="p-1.5 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:text-white"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Upload */}
+                          {Object.keys(uploading).some((k) => k.startsWith(q.id)) ? (
+                            <div className="flex items-center justify-center h-32 border-2 border-dashed border-[#0e3f41] rounded-lg bg-[#021415]">
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-6 w-6 border-2 border-[#18c2a4] border-t-transparent rounded-full animate-spin" />
+                                <span className="text-sm text-gray-400">Enviando...</span>
+                              </div>
                             </div>
                           ) : (
-                            <label className="flex flex-col items-center justify-center gap-2 h-40 border-2 border-dashed border-[#0e3f41] rounded-lg cursor-pointer hover:border-[#18c2a4] transition-colors bg-[#021415]">
-                              <ImageIcon className="h-8 w-8 text-gray-500" />
-                              <span className="text-sm text-gray-400">Clique para enviar uma imagem</span>
-                              <span className="text-[10px] text-gray-500">JPG, PNG ou WEBP (máx. 5MB)</span>
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                className="hidden"
-                                onChange={(e) => handleImageChange(q.id, e.target.files?.[0] || null)}
-                              />
-                            </label>
+                            <div className="flex flex-col gap-2">
+                              <label className="flex flex-col items-center justify-center gap-2 h-32 border-2 border-dashed border-[#0e3f41] rounded-lg cursor-pointer hover:border-[#18c2a4] transition-colors bg-[#021415]">
+                                <ImageIcon className="h-7 w-7 text-gray-500" />
+                                <span className="text-sm text-gray-400">
+                                  {Array.isArray(answers[q.id]) && answers[q.id].length > 0
+                                    ? "Adicionar mais arquivos"
+                                    : "Clique para enviar um arquivo"}
+                                </span>
+                                <span className="text-[10px] text-gray-500">Imagens, PDF, DOC, XLSX (máx. 10MB)</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleFileChange(q.id, e.target.files?.[0] || null)}
+                                />
+                              </label>
+                              <label className="flex items-center justify-center gap-2 h-11 border border-[#0e3f41] rounded-lg cursor-pointer hover:border-[#18c2a4] transition-colors bg-[#021415]">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                                </svg>
+                                <span className="text-sm text-gray-400">Tirar foto com a câmera</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  capture="environment"
+                                  className="hidden"
+                                  onChange={(e) => handleFileChange(q.id, e.target.files?.[0] || null)}
+                                />
+                              </label>
+                            </div>
                           )}
                         </div>
                       )}
