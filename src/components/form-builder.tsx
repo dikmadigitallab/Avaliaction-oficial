@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Plus, Trash2, Save, Star, AlignLeft, CheckSquare, Circle, Heading,
   Users, MessageSquareText, BarChart3, PieChart, TrendingUp,
-  ListChecks, Percent, CalendarDays, LayoutDashboard,
+  ListChecks, Percent, CalendarDays, LayoutDashboard, ImageIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { useSession } from "next-auth/react"
@@ -192,6 +192,7 @@ export function FormBuilder() {
                       <SelectItem value="CHECKBOX">Múltipla Escolha</SelectItem>
                       <SelectItem value="RADIO">Escolha Única</SelectItem>
                       <SelectItem value="LIST">Lista de Seleção</SelectItem>
+                      <SelectItem value="IMAGEM" className="gap-2"><ImageIcon className="h-3 w-3 inline" /> Imagem</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -280,6 +281,7 @@ function TypeBadge({ type }: { type: QuestionType }) {
     RADIO: { label: "Radio", icon: Circle },
     LIST: { label: "Lista", icon: Circle },
     TITULO: { label: "Título", icon: Heading },
+    IMAGEM: { label: "Imagem", icon: ImageIcon },
   }
   const cfg = map[type]
   const Icon = cfg.icon
