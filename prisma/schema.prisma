@@ -20,7 +20,8 @@ enum QuestionType {
   CHECKBOX
   RADIO
   LIST
-  TITULO  
+  TITULO
+  IMAGEM
 }
 
 model User {

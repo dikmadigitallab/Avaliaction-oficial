@@ -10,3 +10,8 @@ node_modules/
 .DS_Store
 .vercel
 .env
+.env.*
+.env.prod
+.env.dev
+/.opencode
+opencode.json

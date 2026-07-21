@@ -1,4 +1,4 @@
-export type QuestionType = "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO"
+export type QuestionType = "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO" | "IMAGEM"
 
 export interface MetricaDef {
   value: string
@@ -91,6 +91,14 @@ export const METRICAS_POR_TIPO: Record<QuestionType, MetricaDef[]> = {
     { value: "ultimas_respostas", label: "Últimas respostas", desc: "Respostas mais recentes recebidas", icon: "MessageCircle", category: "tempo_real" },
   ],
   TITULO: [],
+  IMAGEM: [
+    { value: "total_respostas", label: "Total de respostas", desc: "Contagem total de respostas recebidas", icon: "Users", category: "contagem" },
+    { value: "ultimas_respostas", label: "Últimas respostas", desc: "Últimas respostas recebidas", icon: "MessageCircle", category: "tempo_real" },
+    { value: "respostas_periodo", label: "Respostas por período", desc: "Quantidade de respostas ao longo do tempo", icon: "CalendarDays", category: "tempo" },
+    { value: "crescimento_diario", label: "Crescimento diário", desc: "Variação percentual dia a dia", icon: "TrendingUp", category: "tempo" },
+    { value: "comparacao_periodos", label: "Comparação entre períodos", desc: "Compare respostas entre dois períodos", icon: "CalendarCheck", category: "tempo" },
+    { value: "melhor_horario", label: "Melhor horário de engajamento", desc: "Horário com maior número de respostas", icon: "Clock", category: "tempo" },
+  ],
 }
 
 export function extractOptions(itens: string[]): string[] {

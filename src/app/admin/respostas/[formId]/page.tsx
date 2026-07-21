@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { ChevronDown, Calendar, User, Loader2 } from "lucide-react"
+import { ChevronDown, Calendar, User, Loader2, FileText, File, Download } from "lucide-react"
 import { useParams } from "next/navigation"
 
 export default function RespostasPage() {
@@ -9,16 +9,30 @@ export default function RespostasPage() {
   const FORM_ID = params?.formId as string
 
   const [dados, setDados] = useState<any[]>([])
+  const [perguntasMap, setPerguntasMap] = useState<Record<string, string>>({})
   const [abertoIndex, setAbertoIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const carregarRespostas = useCallback(async () => {
+  const carregarDados = useCallback(async () => {
     if (!FORM_ID) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/forms/respostas?formId=${FORM_ID}`)
-      const json = await res.json()
+      const [resPostas, resForm] = await Promise.all([
+        fetch(`/api/forms/respostas?formId=${FORM_ID}`),
+        fetch(`/api/forms/details?id=${FORM_ID}`),
+      ])
+
+      const json = await resPostas.json()
       setDados(Array.isArray(json) ? json : [])
+
+      if (resForm.ok) {
+        const formData = await resForm.json()
+        const map: Record<string, string> = {}
+        ;(formData.questions || []).forEach((q: any) => {
+          map[q.id] = q.pergunta
+        })
+        setPerguntasMap(map)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -27,8 +41,8 @@ export default function RespostasPage() {
   }, [FORM_ID])
 
   useEffect(() => {
-    carregarRespostas()
-  }, [carregarRespostas])
+    carregarDados()
+  }, [carregarDados])
 
   const total = dados.length
   const ultima = dados[0]?.createdAt
@@ -88,7 +102,16 @@ export default function RespostasPage() {
 
             {dados.map((reg, idx) => {
               const isOpen = abertoIndex === idx
-              const respostas = Array.isArray(reg.respostas) ? reg.respostas : []
+              const rawRespostas = reg.respostas
+              // Normaliza: dict {questionId: valor} → array [{Pergunta, Resposta}]
+              const respostas = Array.isArray(rawRespostas)
+                ? rawRespostas
+                : rawRespostas && typeof rawRespostas === "object"
+                  ? Object.entries(rawRespostas).map(([key, value]) => ({
+                      Pergunta: perguntasMap[key] || key,
+                      Resposta: value,
+                    }))
+                  : []
 
               return (
                 <div
@@ -141,18 +164,59 @@ export default function RespostasPage() {
                       <div className="px-5 pb-6 border-t border-gray-200 dark:border-white/5">
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-5">
-                          {respostas.map((item: any, i: number) => (
-                            <div key={i} className="space-y-1">
-                              <span className="text-[11px] text-gray-500 uppercase">
-                                {item?.Pergunta || item?.pergunta || "-"}
-                              </span>
-                              <p className="text-sm text-gray-800 dark:text-white/90">
-                                {typeof item?.Resposta === "object"
-                                  ? JSON.stringify(item?.Resposta)
-                                  : item?.Resposta || "-"}
-                              </p>
-                            </div>
-                          ))}
+                          {respostas.map((item: any, i: number) => {
+                            const val = item?.Resposta ?? item?.resposta
+                            // Normaliza: array de arquivos OU objeto único de arquivo
+                            const isFileArray = Array.isArray(val) && val.length > 0 && val[0]?.url
+                            const isSingleFile = !isFileArray && val && typeof val === "object" && val.url
+                            const files = isFileArray ? val : isSingleFile ? [val] : []
+
+                            return (
+                              <div key={i} className="space-y-1">
+                                <span className="text-[11px] text-gray-500 uppercase">
+                                  {item?.Pergunta || item?.pergunta || "-"}
+                                </span>
+                                {files.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {files.map((file: any, fi: number) => (
+                                      file.type?.startsWith("image/") ? (
+                                        <a key={fi} href={file.url} target="_blank" rel="noopener noreferrer">
+                                          <img
+                                            src={file.url}
+                                            alt={file.name}
+                                            className="w-full max-h-48 object-contain rounded-lg border border-gray-200 dark:border-white/10 cursor-pointer hover:opacity-80 transition"
+                                          />
+                                        </a>
+                                      ) : (
+                                        <a
+                                          key={fi}
+                                          href={file.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 transition"
+                                        >
+                                          {file.type === "application/pdf" ? (
+                                            <FileText className="h-8 w-8 text-red-500 flex-shrink-0" />
+                                          ) : (
+                                            <File className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                                          )}
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-800 dark:text-white/90 truncate">{file.name}</p>
+                                            <p className="text-[10px] text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                                          </div>
+                                          <Download className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                        </a>
+                                      )
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-800 dark:text-white/90">
+                                    {val || "-"}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
 
                         {/* NAVEGAÇÃO */}

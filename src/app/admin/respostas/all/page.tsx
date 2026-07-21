@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { ChevronDown, Calendar, User, ClipboardList, Loader2, AlertCircle } from "lucide-react"
+import { ChevronDown, Calendar, User, ClipboardList, Loader2, AlertCircle, FileText, File, Download } from "lucide-react"
 import { useParams } from "next/navigation"
 
 interface ItemResposta {
@@ -23,6 +23,7 @@ export default function RespostasPage() {
 
   const [mounted, setMounted] = useState(false)
   const [dados, setDados] = useState<Registro[]>([])
+  const [perguntasMap, setPerguntasMap] = useState<Record<string, string>>({})
   const [aberto, setAberto] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [erroAtivo, setErroAtivo] = useState<string | null>(null)
@@ -38,16 +39,46 @@ export default function RespostasPage() {
     setErroAtivo(null)
 
     try {
-      const res = await fetch(`/api/forms/respostas?formId=${FORM_ID}`)
-      if (!res.ok) throw new Error("Erro na conexão")
+      const [resPostas, resForm] = await Promise.all([
+        fetch(`/api/forms/respostas?formId=${FORM_ID}`),
+        fetch(`/api/forms/details?id=${FORM_ID}`),
+      ])
 
-      const json = await res.json()
+      if (!resPostas.ok) throw new Error("Erro na conexão")
 
-      const dadosTratados: Registro[] = (Array.isArray(json) ? json : []).map((item: any) => ({
-        id: item.id || Math.random().toString(36).slice(2),
-        createdAt: item.createdAt || new Date().toISOString(),
-        respostas: Array.isArray(item.respostas) ? item.respostas : []
-      }))
+      // Mapa local: questionId -> texto da pergunta
+      const localMap: Record<string, string> = {}
+      if (resForm.ok) {
+        const formData = await resForm.json()
+        ;(formData.questions || []).forEach((q: any) => {
+          localMap[q.id] = q.pergunta
+        })
+        setPerguntasMap(localMap)
+      }
+
+      const json = await resPostas.json()
+
+      const dadosTratados: Registro[] = (Array.isArray(json) ? json : []).map((item: any) => {
+        const raw = item.respostas
+        // Normaliza: dict {questionId: valor} → array [{Pergunta, Resposta}]
+        let respostasFormatadas: ItemResposta[]
+        if (Array.isArray(raw)) {
+          respostasFormatadas = raw
+        } else if (raw && typeof raw === "object") {
+          respostasFormatadas = Object.entries(raw).map(([key, value]) => ({
+            Pergunta: localMap[key] || key,
+            Resposta: value,
+          }))
+        } else {
+          respostasFormatadas = []
+        }
+
+        return {
+          id: item.id || Math.random().toString(36).slice(2),
+          createdAt: item.createdAt || new Date().toISOString(),
+          respostas: respostasFormatadas,
+        }
+      })
 
       setDados(dadosTratados)
     } catch {
@@ -67,7 +98,11 @@ export default function RespostasPage() {
     const val = item.Resposta ?? item.resposta
     if (val === null || val === undefined || val === "") return "-"
     if (typeof val === "object") {
-      if (Array.isArray(val)) return val.join(", ")
+      if (Array.isArray(val)) {
+        if (val.length > 0 && val[0]?.url) return `${val.length} arquivo(s) anexado(s)`
+        return val.join(", ")
+      }
+      if (val.url) return val.name || "Arquivo anexado"
       return val.label || val.value || JSON.stringify(val)
     }
     return String(val)
@@ -181,32 +216,72 @@ export default function RespostasPage() {
                     <div className="px-6 md:px-8 pb-10 pt-2 space-y-4">
                       <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 dark:via-white/10 to-transparent mb-8" />
 
-                      {registro.respostas.map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[1.5rem] bg-neutral-50/50 dark:bg-black/40 border border-neutral-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-black/60"
-                        >
-                          <div className="flex-1">
-                            <p className="text-[10px] uppercase font-black text-blue-600 dark:text-blue-500 tracking-[0.2em] mb-2">
-                              Questão
-                            </p>
+                      {registro.respostas.map((item, i) => {
+                        const val = item.Resposta ?? item.resposta
+                        // Normaliza: array de arquivos OU objeto único de arquivo
+                        const isFileArray = Array.isArray(val) && val.length > 0 && val[0]?.url
+                        const isSingleFile = !isFileArray && val && typeof val === "object" && val.url
+                        const files = isFileArray ? val : isSingleFile ? [val] : []
 
-                            <p className="text-base font-bold text-neutral-700 dark:text-neutral-200 leading-relaxed">
-                              {formatarPergunta(item)}
-                            </p>
+                        return (
+                          <div
+                            key={i}
+                            className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[1.5rem] bg-neutral-50/50 dark:bg-black/40 border border-neutral-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-black/60"
+                          >
+                            <div className="flex-1">
+                              <p className="text-[10px] uppercase font-black text-blue-600 dark:text-blue-500 tracking-[0.2em] mb-2">
+                                Questão
+                              </p>
+
+                              <p className="text-base font-bold text-neutral-700 dark:text-neutral-200 leading-relaxed">
+                                {formatarPergunta(item)}
+                              </p>
+                            </div>
+
+                            <div className="md:text-right flex flex-col items-start md:items-end min-w-[120px]">
+                              <p className="text-[10px] uppercase font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] mb-2">
+                                Resposta
+                              </p>
+
+                              {files.length > 0 ? (
+                                <div className="space-y-2">
+                                  {files.map((file: any, fi: number) => (
+                                    file.type?.startsWith("image/") ? (
+                                      <a key={fi} href={file.url} target="_blank" rel="noopener noreferrer">
+                                        <img
+                                          src={file.url}
+                                          alt={file.name}
+                                          className="w-full max-h-40 object-contain rounded-xl border border-neutral-200 dark:border-white/10 cursor-pointer hover:opacity-80 transition"
+                                        />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        key={fi}
+                                        href={file.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-black rounded-xl border border-neutral-200 dark:border-blue-500/20 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-500/20 transition"
+                                      >
+                                        {file.type === "application/pdf" ? (
+                                          <FileText className="h-4 w-4" />
+                                        ) : (
+                                          <File className="h-4 w-4" />
+                                        )}
+                                        {file.name || "Arquivo"}
+                                        <Download className="h-3 w-3" />
+                                      </a>
+                                    )
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="inline-block px-5 py-2.5 bg-white dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-black rounded-xl border border-neutral-200 dark:border-blue-500/20 shadow-sm">
+                                  {formatarResposta(item)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-
-                          <div className="md:text-right flex flex-col items-start md:items-end min-w-[120px]">
-                            <p className="text-[10px] uppercase font-black text-neutral-400 dark:text-neutral-500 tracking-[0.2em] mb-2">
-                              Resposta
-                            </p>
-
-                            <span className="inline-block px-5 py-2.5 bg-white dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-black rounded-xl border border-neutral-200 dark:border-blue-500/20 shadow-sm">
-                              {formatarResposta(item)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

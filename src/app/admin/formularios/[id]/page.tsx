@@ -31,13 +31,14 @@ import {
   Plus,
   Loader2,
   GripVertical,
+  ImageIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 type Question = {
   id: string
   pergunta: string
-  type: "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO"
+  type: "TEXT" | "AVALIACAO" | "CHECKBOX" | "RADIO" | "LIST" | "TITULO" | "IMAGEM"
   required: boolean
   order: number
   itens: string[]
@@ -281,6 +282,9 @@ export default function FormViewPage() {
                           <SelectItem value="RADIO">Seleção Única</SelectItem>
                           <SelectItem value="LIST">Lista Suspensa</SelectItem>
                           <SelectItem value="TITULO">Apenas Título/Seção</SelectItem>
+                          <SelectItem value="IMAGEM" className="gap-2">
+                            <ImageIcon className="h-3 w-3 inline" /> Imagem
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

@@ -76,7 +76,10 @@ export async function GET(req: NextRequest) {
         userId
       },
       include: {
-        questions: true
+        questions: true,
+        _count: {
+          select: { respostas: true }
+        }
       },
       orderBy: {
         createdAt: "desc"
