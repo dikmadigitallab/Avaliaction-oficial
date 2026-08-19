@@ -33,6 +33,7 @@ import {
   ExternalLink,
   Trash2Icon,
   Eye,
+  Repeat,
 } from "lucide-react"
 import type { FormTemplate } from "@/lib/types"
 import { toast } from "sonner"
@@ -189,6 +190,12 @@ return (
                         <Badge variant="outline" className="gap-1 text-[10px] border-border/50 bg-background/50">
                           <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                           {ratingCount} Avaliação
+                        </Badge>
+                      )}
+                      {form.allowMultipleResponses && (
+                        <Badge variant="outline" className="gap-1 text-[10px] border-primary/30 bg-primary/5 text-primary">
+                          <Repeat className="h-3 w-3" />
+                          Multi-respostas
                         </Badge>
                       )}
                     </div>

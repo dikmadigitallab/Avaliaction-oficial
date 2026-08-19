@@ -66,6 +66,7 @@ export interface FormTemplate {
   questions: FormQuestion[]
   createdAt: string
   updatedAt: string
+  allowMultipleResponses?: boolean
 }
 
 // Form Responses

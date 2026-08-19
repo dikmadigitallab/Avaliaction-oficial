@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import {
   ArrowLeft,
   Pencil,
@@ -32,6 +33,7 @@ import {
   Loader2,
   GripVertical,
   ImageIcon,
+  Repeat,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -48,6 +50,7 @@ type FormType = {
   id: string
   name: string
   anonymous: boolean
+  allowMultipleResponses: boolean
   createdAt: string
   questions: Question[]
 }
@@ -64,6 +67,8 @@ export default function FormViewPage() {
   
   // Estados de edição
   const [name, setName] = useState("")
+  const [allowMultipleResponses, setAllowMultipleResponses] = useState(false)
+  const [savingFlag, setSavingFlag] = useState(false)
   const [questions, setQuestions] = useState<Question[]>([])
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -78,6 +83,7 @@ export default function FormViewPage() {
         
         // Inicializa os estados de edição com os dados que já existem no banco
         setName(data.name)
+        setAllowMultipleResponses(data.allowMultipleResponses ?? false)
         setQuestions(data.questions || [])
       } catch {
         toast.error("Erro ao carregar formulário.")
@@ -97,6 +103,7 @@ export default function FormViewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          allowMultipleResponses,
           questions, // Envia o array completo de perguntas para sincronização
         }),
       })
@@ -111,6 +118,28 @@ export default function FormViewPage() {
       toast.error("Erro ao atualizar formulário.")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleToggleMultiple = async (checked: boolean) => {
+    setSavingFlag(true)
+    try {
+      const res = await fetch(`/api/forms?id=${formId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allowMultipleResponses: checked }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      const updated = await res.json()
+      setForm(updated)
+      setAllowMultipleResponses(updated.allowMultipleResponses ?? checked)
+      toast.success(checked ? "Multi-respostas por CPF ativado." : "Multi-respostas por CPF desativado.")
+    } catch {
+      toast.error("Erro ao alterar a configuração.")
+    } finally {
+      setSavingFlag(false)
     }
   }
 
@@ -218,13 +247,60 @@ export default function FormViewPage() {
                 className="text-lg font-bold"
                 placeholder="Ex: Pesquisa de Satisfação"
               />
+              <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/20">
+                <Checkbox 
+                  id="allow-multiple-edit"
+                  checked={allowMultipleResponses}
+                  onCheckedChange={(val) => setAllowMultipleResponses(!!val)}
+                />
+                <div>
+                  <label htmlFor="allow-multiple-edit" className="text-sm font-medium cursor-pointer">
+                    Permitir responder mais de uma vez por CPF
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Se ativado, o mesmo CPF poderá responder este formulário quantas vezes quiser.
+                  </p>
+                </div>
+              </div>
             </div>
           ) : (
-            <CardTitle className="text-2xl">{form.name}</CardTitle>
+            <div className="flex flex-wrap items-center gap-3">
+              <CardTitle className="text-2xl">{form.name}</CardTitle>
+              {form.allowMultipleResponses && (
+                <Badge variant="outline" className="gap-1.5 border-primary/30 bg-primary/5 text-primary text-xs">
+                  <Repeat className="h-3.5 w-3.5" />
+                  Multi-respostas
+                </Badge>
+              )}
+            </div>
           )}
           <CardDescription>ID: {form.id}</CardDescription>
         </CardHeader>
       </Card>
+
+      {/* CONFIGURAÇÕES DE RESPOSTA (TOGGLE RÁPIDO FORA DO MODO EDIÇÃO) */}
+      {!editing && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Configurações de resposta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Permitir responder mais de uma vez por CPF</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Quando ativo, o mesmo CPF pode responder este formulário quantas vezes quiser.
+                </p>
+              </div>
+              <Switch
+                checked={form.allowMultipleResponses ?? false}
+                onCheckedChange={handleToggleMultiple}
+                disabled={savingFlag}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ESTRUTURA DE PERGUNTAS */}
       <div className="space-y-4">
