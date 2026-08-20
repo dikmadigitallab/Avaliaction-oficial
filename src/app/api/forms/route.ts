@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
 
-    const { name, userId, anonymous, cpf_list, questions } = body
+    const { name, userId, anonymous, allowMultipleResponses, requireCpf, cpf_list, questions } = body
 
     if (!name || !userId) {
       return NextResponse.json(
@@ -27,7 +27,9 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         userId,
-        anonymous,
+        anonymous: anonymous ?? true,
+        allowMultipleResponses: allowMultipleResponses ?? false,
+        requireCpf: requireCpf ?? true,
         cpf_list,
         questions: {
           create: questions.map((q: any) => ({
@@ -106,7 +108,7 @@ export async function PUT(req: NextRequest) {
     const id = searchParams.get("id")
 
     const body = await req.json()
-    const { name, anonymous, cpf_list, questions } = body
+    const { name, anonymous, allowMultipleResponses, requireCpf, cpf_list, questions } = body
 
     if (!id) {
       return NextResponse.json(
@@ -120,6 +122,8 @@ export async function PUT(req: NextRequest) {
       data: {
         name,
         anonymous,
+        allowMultipleResponses,
+        requireCpf,
         cpf_list,
         ...(Array.isArray(questions) && {
           questions: {

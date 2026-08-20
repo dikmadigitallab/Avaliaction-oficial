@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { FormBuilder } from "@/components/form-builder"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import {
   ClipboardList,
   Star,
@@ -33,7 +34,7 @@ import {
   ExternalLink,
   Trash2Icon,
   Eye,
-  MessageSquareText,
+  Repeat,
 } from "lucide-react"
 import type { FormTemplate } from "@/lib/types"
 import { toast } from "sonner"
@@ -41,6 +42,7 @@ import { toast } from "sonner"
 export default function FormulariosPage() {
   const [forms, setForms] = useState<FormTemplate[]>([])
   const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const { data: session } = useSession()
@@ -112,7 +114,29 @@ export default function FormulariosPage() {
     }
   }
 
-return (
+  const handleToggleMultiple = async (formId: string, value: boolean) => {
+    setSavingId(formId)
+    try {
+      const res = await fetch(`/api/forms?id=${formId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allowMultipleResponses: value }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      setForms((prev) =>
+        prev.map((f) => (f.id === formId ? { ...f, allowMultipleResponses: value } : f))
+      )
+      toast.success(value ? "Multi-respostas ativado." : "Multi-respostas desativado.")
+    } catch {
+      toast.error("Erro ao alterar a configuração.")
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  return (
     <div className="space-y-8 mt-12 animate-fade-in">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -164,11 +188,11 @@ return (
                   className="group relative flex flex-col justify-between overflow-hidden border-border bg-card transition-all hover:border-primary/50 hover:shadow-xl hover:shadow-black/5"
                 >
                   {/* Área clicável para navegação */}
-                  <div 
-                    className="absolute inset-0 cursor-pointer z-0" 
+                  <div
+                    className="absolute inset-0 cursor-pointer z-0"
                     onClick={() => router.push(`/admin/formularios/${form.id}`)}
                   />
-                  
+
                   <CardHeader className="pb-4 relative z-10">
                     <div className="space-y-1">
                       <CardTitle className="text-base font-bold leading-tight group-hover:text-primary transition-colors flex items-center gap-2">
@@ -192,12 +216,31 @@ return (
                           {ratingCount} Avaliação
                         </Badge>
                       )}
-                      {((form as any)._count?.respostas ?? 0) > 0 && (
-                        <Badge variant="outline" className="gap-1 text-[10px] border-border/50 bg-background/50">
-                          <MessageSquareText className="h-3 w-3" />
-                          {(form as any)._count.respostas} Respostas
+                      {form.allowMultipleResponses && (
+                        <Badge variant="outline" className="gap-1 text-[10px] border-primary/30 bg-primary/5 text-primary">
+                          <Repeat className="h-3 w-3" />
+                          Multi-respostas
                         </Badge>
                       )}
+                    </div>
+
+                    {/* CONFIGURAÇÕES DE RESPOSTA */}
+                    <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold">Multi-respostas</p>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {form.allowMultipleResponses ? "Mesmo CPF responde várias vezes" : "Uma resposta por CPF"}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={form.allowMultipleResponses ?? false}
+                          disabled={savingId === form.id}
+                          onCheckedChange={(checked) => {
+                            handleToggleMultiple(form.id, checked)
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* ACTIONS ROW */}

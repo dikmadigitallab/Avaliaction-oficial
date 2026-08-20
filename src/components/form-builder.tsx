@@ -43,6 +43,7 @@ export function FormBuilder() {
   const userId = session.data?.user?.id
 
   const [formName, setFormName] = useState("")
+  const [allowMultiple, setAllowMultiple] = useState(false)
   const [questions, setQuestions] = useState<FormQuestion[]>([])
   const [isAdding, setIsAdding] = useState(false)
 
@@ -104,6 +105,7 @@ export function FormBuilder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formName.trim(), userId, anonymous: true,
+          allowMultipleResponses: allowMultiple,
           questions: questions.map((q, index) => {
             const base = q.type === "LIST" ? q.itens || [] : q.options || []
             return {
@@ -129,6 +131,24 @@ export function FormBuilder() {
         <CardContent>
           <Label>Nome do formulário *</Label>
           <Input value={formName} onChange={(e) => setFormName(e.target.value)} className="mt-2" />
+
+          <div className="mt-4 flex items-center gap-3 rounded-lg border p-4 bg-muted/20">
+            <input
+              type="checkbox"
+              id="allow-multiple"
+              checked={allowMultiple}
+              onChange={(e) => setAllowMultiple(e.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            <div>
+              <Label htmlFor="allow-multiple" className="cursor-pointer font-medium">
+                Permitir responder mais de uma vez por CPF
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Se ativado, o mesmo CPF poderá responder este formulário quantas vezes quiser.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

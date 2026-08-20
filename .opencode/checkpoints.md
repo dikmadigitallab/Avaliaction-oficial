@@ -82,3 +82,15 @@ Consulte no início de cada interação para saber onde parou.
 - [ ] Relatórios completos na página admin
 - [ ] Exportação de respostas por período (data início / data fim)
 - [ ] Sidebar de exportação dedicada
+
+## 2026-08-20 — Sessão: Toggle "Resposta por CPF"
+- [x] Campo `requireCpf` adicionado ao schema Prisma (authorized pelo usuário)
+- [x] API forms: POST/PUT aceitam `requireCpf`
+- [x] API authForm: respeita `requireCpf` (GET libera acesso direto; POST não registra CPF)
+- [x] Tela `/admin/formularios`: switches "Resposta por CPF" e "Multi-respostas" nos cards
+- [x] **Ajuste:** opção "Resposta por CPF" removida da UI a pedido do usuário. Ficou apenas o switch "Multi-respostas". Backend `requireCpf` mantido (default true), não exposto na UI.
+- [x] `responder/[id]`: redireciona para `/responder/[id]/anonimo` quando `requireCpf=false`
+- [x] Proteção na página `[cpf]` contra acesso anônimo indevido
+- [x] Build OK
+- [x] **Banco atualizado** (autorizado pelo usuário): `ALTER TABLE "Form" ADD COLUMN "requireCpf" BOOLEAN NOT NULL DEFAULT true` aplicado via `prisma db execute`
+- [ ] **ATENÇÃO:** `prisma migrate dev` detecta drift pré-existente (coluna `allowMultipleResponses` no banco não registrada nas migrações). Não rodar `migrate reset` — apagaria dados. Para criar a migração registrada seria necessário, mas não foi feito para não arriscar dados.
