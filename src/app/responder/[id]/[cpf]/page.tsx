@@ -58,6 +58,12 @@ export default function FormResponsePage() {
         }
         const data = await res.json()
         setForm(data)
+
+        // Rota anônima usada quando o form NÃO exige CPF.
+        // Se o formulário exigir CPF, manda de volta para a validação.
+        if (data.requireCpf && cpf === "anonimo") {
+          router.replace(`/responder/${formId}`)
+        }
       } catch {
         toast.error("Erro ao carregar formulário")
       }

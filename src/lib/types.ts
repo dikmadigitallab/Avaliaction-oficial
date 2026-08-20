@@ -67,6 +67,7 @@ export interface FormTemplate {
   createdAt: string
   updatedAt: string
   allowMultipleResponses?: boolean
+  requireCpf?: boolean
 }
 
 // Form Responses

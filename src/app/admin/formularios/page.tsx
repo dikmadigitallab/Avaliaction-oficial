@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { FormBuilder } from "@/components/form-builder"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import {
   ClipboardList,
   Star,
@@ -41,6 +42,7 @@ import { toast } from "sonner"
 export default function FormulariosPage() {
   const [forms, setForms] = useState<FormTemplate[]>([])
   const [deleteTarget, setDeleteTarget] = useState<FormTemplate | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const { data: session } = useSession()
@@ -109,6 +111,28 @@ export default function FormulariosPage() {
       toast.success("Formulario excluido.")
     } catch {
       toast.error("Erro ao excluir formulario.")
+    }
+  }
+
+  const handleToggleMultiple = async (formId: string, value: boolean) => {
+    setSavingId(formId)
+    try {
+      const res = await fetch(`/api/forms?id=${formId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allowMultipleResponses: value }),
+      })
+
+      if (!res.ok) throw new Error()
+
+      setForms((prev) =>
+        prev.map((f) => (f.id === formId ? { ...f, allowMultipleResponses: value } : f))
+      )
+      toast.success(value ? "Multi-respostas ativado." : "Multi-respostas desativado.")
+    } catch {
+      toast.error("Erro ao alterar a configuração.")
+    } finally {
+      setSavingId(null)
     }
   }
 
@@ -198,6 +222,25 @@ return (
                           Multi-respostas
                         </Badge>
                       )}
+                    </div>
+
+                    {/* CONFIGURAÇÕES DE RESPOSTA */}
+                    <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold">Multi-respostas</p>
+                          <p className="text-[10px] text-muted-foreground truncate">
+                            {form.allowMultipleResponses ? "Mesmo CPF responde várias vezes" : "Uma resposta por CPF"}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={form.allowMultipleResponses ?? false}
+                          disabled={savingId === form.id}
+                          onCheckedChange={(checked) => {
+                            handleToggleMultiple(form.id, checked)
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* ACTIONS ROW */}
