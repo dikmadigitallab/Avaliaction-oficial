@@ -66,6 +66,8 @@ export interface FormTemplate {
   questions: FormQuestion[]
   createdAt: string
   updatedAt: string
+  allowMultipleResponses?: boolean
+  requireCpf?: boolean
 }
 
 // Form Responses

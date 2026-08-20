@@ -75,7 +75,9 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         cpf_list: true,
-        name:true
+        allowMultipleResponses: true,
+        requireCpf: true,
+        name: true
       }
     })
 
@@ -86,7 +88,12 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    if (form.cpf_list?.includes(cpf)) {
+    // Formulário que não exige CPF: libera acesso direto, sem checar lista
+    if (!form.requireCpf) {
+      return NextResponse.json({ link: `/responder/${formId}/anonimo` })
+    }
+
+    if (!form.allowMultipleResponses && form.cpf_list?.includes(cpf)) {
       return NextResponse.json(
         { error: "Este CPF já respondeu o formulário" },
         { status: 409 }
@@ -121,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     const form = await prisma.form.findUnique({
       where: { id: formId },
-      select: { cpf_list: true }
+      select: { cpf_list: true, allowMultipleResponses: true, requireCpf: true }
     })
 
     if (!form) {
@@ -129,6 +136,17 @@ export async function POST(req: NextRequest) {
         { error: "Formulário não encontrado" },
         { status: 404 }
       )
+    }
+
+    // Formulário que não exige CPF: nada a registrar
+    if (!form.requireCpf) {
+      return NextResponse.json({ ok: true, requireCpf: false })
+    }
+
+    // Quando múltiplas respostas por CPF estão liberadas, não registra o CPF
+    // como "já respondeu" para não bloquear futuras respostas.
+    if (form.allowMultipleResponses) {
+      return NextResponse.json({ ok: true, allowMultipleResponses: true })
     }
 
     if (form.cpf_list.includes(cpf)) {

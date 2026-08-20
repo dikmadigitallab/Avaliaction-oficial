@@ -52,6 +52,8 @@ model Form {
   id        String     @id @default(uuid())
   name      String
   anonymous Boolean    @default(true)
+  allowMultipleResponses Boolean @default(false) // permite o mesmo cpf responder mais de uma vez
+  requireCpf Boolean @default(true) // se false, o formulário não exige CPF para responder
   cpf_list  String[] //lista todos os cpfs que responderam usa isso pra impedir que cpfs con
   userId    String
   user      User       @relation(fields: [userId], references: [id])

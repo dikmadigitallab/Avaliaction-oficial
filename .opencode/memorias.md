@@ -51,3 +51,15 @@ Plataforma de avaliação anônima para empresas. Gestores criam formulários pe
 - Nunca alterar o schema do Prisma sem autorização explícita
 - Nunca executar migrações automaticamente
 - Preservar compatibilidade com código existente
+
+## 2026-08-20 — Toggle "Resposta por CPF" na tela principal de formulários
+- **Decisão:** Adicionado campo `requireCpf Boolean @default(true)` no model `Form` (autorizado pelo usuário).
+  - `false` = formulário não exige CPF para responder (link direto `/responder/[id]/anonimo`)
+- **Front:** `/admin/formularios` — switch **"Multi-respostas"** no card de cada formulário (atualização via PUT `/api/forms`)
+- **2026-08-20 (ajuste):** Removida a opção "Resposta por CPF" da tela principal a pedido do usuário. Ficou apenas o switch "Multi-respostas". A funcionalidade `requireCpf` permanece no schema/API (default `true` = comportamento original), mas não é exposta na UI.
+- **API:**
+  - `api/forms` POST/PUT aceitam `requireCpf`
+  - `api/authForm` GET: se `requireCpf=false` libera acesso direto (sem checar `cpf_list`); POST: não registra CPF
+- **Fluxo de resposta:** `responder/[id]` busca `requireCpf` via `/api/forms/details` e redireciona para `/responder/[id]/anonimo` quando desativado. Proteção na página `[cpf]`: se exige CPF e rota é "anonimo", volta para validação.
+- **Pendência:** migração no banco ainda NÃO aplicada (ver checkpoints).
+- **Observação:** page.txt em `src/app/admin/` é código antigo de login por CPF (localStorage) mantido como referência.

@@ -21,11 +21,16 @@ export default function HomePage() {
   useEffect(() => {
     const buscarNome = async () => {
       try {
-        const res = await fetch(`/api/authForm/searchTitle?formId=${formId}`);
+        const res = await fetch(`/api/forms/details?id=${formId}`);
         const data = await res.json();
-  
+
         if (res.ok) {
           setTitulo(data.name);
+
+          // Formulário que não exige CPF: vai direto para responder
+          if (data.requireCpf === false) {
+            router.replace(`/responder/${formId}/anonimo`)
+          }
         } else {
           console.error(data.error);
         }
