@@ -246,10 +246,16 @@ export function FormBuilder() {
 
               {metricasDisponiveis.length > 0 && (
                 <div className="border-t pt-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4 text-primary" />
-                    <Label className="font-bold text-sm">Métricas do Dashboard</Label>
-                    <span className="text-[10px] text-muted-foreground">(escolha quais métricas exibir no dashboard)</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard className="h-4 w-4 text-primary" />
+                      <Label className="font-bold text-sm">Métricas do Dashboard</Label>
+                      <span className="text-[10px] text-muted-foreground">(escolha quais métricas exibir no dashboard)</span>
+                    </div>
+                    <label className="flex items-center gap-1.5 text-xs font-medium cursor-pointer shrink-0 border rounded-full px-3 py-1 hover:bg-muted transition-colors">
+                      <input type="checkbox" checked={newMetricas.length === metricasDisponiveis.length && metricasDisponiveis.length > 0} onChange={() => setNewMetricas(newMetricas.length === metricasDisponiveis.length ? [] : metricasDisponiveis.map(m => m.value))} className="accent-primary" />
+                      Marcar todas
+                    </label>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {metricasDisponiveis.map((met) => {

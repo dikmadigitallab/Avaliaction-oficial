@@ -22,19 +22,21 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Switch } from "@/components/ui/switch"
 import {
-  ArrowLeft,
-  Pencil,
-  Trash2,
-  Copy,
-  MessageCircle,
-  Save,
-  X,
-  Plus,
-  Loader2,
-  GripVertical,
-  ImageIcon,
-  Repeat,
-} from "lucide-react"
+   ArrowLeft,
+   Pencil,
+   Trash2,
+   Copy,
+   MessageCircle,
+   Save,
+   X,
+   Plus,
+   Loader2,
+   GripVertical,
+   ImageIcon,
+   Repeat,
+   ChevronUp,
+   ChevronDown,
+ } from "lucide-react"
 import { toast } from "sonner"
 
 type Question = {
@@ -95,16 +97,27 @@ export default function FormViewPage() {
     if (formId) fetchForm()
   }, [formId])
 
+  const moveQuestion = (from: number, to: number) => {
+    if (to < 0 || to >= questions.length) return
+    setQuestions((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
+  }
+
   const handleUpdate = async () => {
     setSaving(true)
     try {
+      const orderedQuestions = questions.map((q, idx) => ({ ...q, order: idx }))
       const res = await fetch(`/api/forms?id=${formId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           allowMultipleResponses,
-          questions, // Envia o array completo de perguntas para sincronização
+          questions: orderedQuestions,
         }),
       })
 
@@ -330,6 +343,14 @@ export default function FormViewPage() {
                         onChange={(e) => updateQuestion(q.id, "pergunta", e.target.value)}
                         placeholder="Digite o enunciado da pergunta..."
                       />
+                    </div>
+                    <div className="flex flex-col gap-1 mt-6">
+                      <Button variant="outline" size="icon" className="h-7 w-7" disabled={index === 0} onClick={() => moveQuestion(index, index - 1)} title="Mover para cima">
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-7 w-7" disabled={index === questions.filter((x) => !x.pergunta.startsWith("@INDICADOR:")).length - 1} onClick={() => moveQuestion(index, index + 1)} title="Mover para baixo">
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
                     </div>
                     <Button 
                       variant="ghost" 

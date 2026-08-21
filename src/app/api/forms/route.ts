@@ -128,11 +128,11 @@ export async function PUT(req: NextRequest) {
         ...(Array.isArray(questions) && {
           questions: {
             deleteMany: {},
-            create: questions.map((q: any) => ({
+            create: questions.map((q: any, idx: number) => ({
               pergunta: q.pergunta,
               type: q.type as QuestionType,
               required: q.required ?? true,
-              order: q.order ?? 0,
+              order: idx,
               itens: q.itens ?? []
             }))
           }
