@@ -238,7 +238,7 @@ export default function FormResponsePage() {
     )
 
     return (
-      <div className="relative min-h-screen flex justify-center items-start p-6 bg-[#021415] overflow-hidden">
+      <div style={{ colorScheme: "dark" }} className="relative min-h-screen flex justify-center items-start p-6 bg-[#021415] overflow-hidden [color-scheme:dark]">
         
         <div
           style={{ backgroundImage: "url('/assets/felizes.avif')" }}
@@ -273,12 +273,12 @@ export default function FormResponsePage() {
                 <div key={q.id} className="flex flex-col gap-2">
                   
                   {isTitle ? (
-                    <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+                    <h2 className="text-sm font-medium !text-white uppercase tracking-wide" style={{ color: "white" }}>
                       {q.pergunta}
                     </h2>
                   ) : (
                     <>
-                      <label className="text-sm text-white font-medium">
+                      <label className="text-sm font-medium !text-white" style={{ color: "white" }}>
                         {q.pergunta}
                         {q.required && (
                           <span className="text-[#18c2a4] ml-1">*</span>
@@ -301,11 +301,12 @@ export default function FormResponsePage() {
                           {["Ótimo", "Bom", "Regular", "Ruim"].map((op) => (
                             <label
                               key={op}
-                              className={`px-3 py-2 rounded-md text-sm border cursor-pointer transition ${
+                              className={`px-3 py-2 rounded-md text-sm border cursor-pointer transition !text-white ${
                                 answers[q.id] === op
-                                  ? "border-[#18c2a4] text-white bg-[#18c2a4]/10"
-                                  : "border-[#0e3f41] text-gray-300 hover:border-[#18c2a4]"
+                                  ? "border-[#18c2a4] bg-[#18c2a4]/10"
+                                  : "border-[#0e3f41] hover:border-[#18c2a4]"
                               }`}
+                              style={{ color: "white" }}
                             >
                               <input
                                 type="radio"
@@ -328,11 +329,12 @@ export default function FormResponsePage() {
                           {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                             <label
                               key={opt}
-                              className={`flex items-center gap-2 px-3 py-2 rounded-md border text-sm cursor-pointer transition ${
+                              className={`flex items-center gap-2 px-3 py-2 rounded-md border text-sm cursor-pointer transition !text-white ${
                                 answers[q.id] === opt
                                   ? "border-[#18c2a4] bg-[#18c2a4]/10"
                                   : "border-[#0e3f41] hover:border-[#18c2a4]"
                               }`}
+                              style={{ color: "white" }}
                             >
                               <input
                                 type="radio"
@@ -343,18 +345,19 @@ export default function FormResponsePage() {
                                   handleChange(q.id, opt)
                                 }
                               />
-                              {opt}
+                              <span style={{ color: "white" }}>{opt}</span>
                             </label>
                           ))}
                         </div>
                       )}
-    
+
                       {q.type === "CHECKBOX" && q.itens && (
                         <div className="flex flex-col gap-2">
                           {q.itens.filter((i) => !i.startsWith("@METRIC:")).map((opt) => (
                             <label
                               key={opt}
-                              className="flex items-center gap-2 px-3 py-2 rounded-md border border-[#0e3f41] text-sm cursor-pointer hover:border-[#18c2a4] transition"
+                              className="flex items-center gap-2 px-3 py-2 rounded-md border border-[#0e3f41] text-sm cursor-pointer hover:border-[#18c2a4] transition !text-white"
+                              style={{ color: "white" }}
                             >
                               <input
                                 type="checkbox"
@@ -364,7 +367,7 @@ export default function FormResponsePage() {
                                   handleCheckboxChange(q.id, opt)
                                 }
                               />
-                              {opt}
+                              <span style={{ color: "white" }}>{opt}</span>
                             </label>
                           ))}
                         </div>
